@@ -18,7 +18,7 @@ export default function  Home() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <Mandelbrot width={700} height={500 }/>
+        <Mandelbrot width={700} height={500} iterations={100}/>
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>

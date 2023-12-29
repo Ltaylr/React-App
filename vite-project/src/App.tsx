@@ -58,7 +58,6 @@ function App() {
 
   return (
     <div className="App">
-    
     <BrowserRouter>
       <Routes>
           <Route path="/" element={<Home />}/>
@@ -68,7 +67,6 @@ function App() {
           <Route path="/mandelbrotviewer" element={<MandelbrotViewer />}/>
           <Route path="*" element={<NoPage />}/>
       </Routes>
-      
     </BrowserRouter>
     <div className="side-nav">
       {

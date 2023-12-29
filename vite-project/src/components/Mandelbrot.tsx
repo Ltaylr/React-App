@@ -1,9 +1,10 @@
 import {useRef, useEffect, useState} from 'react';
-import { MouseEvent } from 'react';
+import { MouseEvent, FormEvent } from 'react';
 interface mandelProp
 {
     width:number,
-    height:number
+    height:number,
+    iterations:number
 }
 
 interface coordinatePair
@@ -67,18 +68,31 @@ function getNewCenter(offsetX:number, offsetY:number, res:number, width:number, 
      
 
 }
+function getTopLeftCoordinate(clickPoint:coordinatePair, clickCoor:coordinatePair, currentCornerCoor:coordinatePair)
+{
+    const hypotenusePixelLength: number = Math.sqrt(clickPoint.x*clickPoint.x + clickPoint.y*clickPoint.y);
+    const hypotenuseCoorLength: number = Math.sqrt(Math.pow(clickCoor.x - currentCornerCoor.x, 2) + Math.pow(clickCoor.y - currentCornerCoor.y, 2));
 
+}
 function Mandelbrot(props:mandelProp)
 {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const contextRef = useRef<CanvasRenderingContext2D>(null!);
     const [center, setCenter] = useState({x: 0, y: 0});
     const [res, setRes] = useState(2/(props.height/2));
+    const [its, setIterations] = useState(200)
+    const handleSubmit = (e:FormEvent) => {
+        e.preventDefault()
+        const buf = generateMandelbrot(center, props.width, props.height, res*.90, its);
+        var idata = contextRef.current.createImageData(props.width, props.height);
+        idata.data.set(buf);
+        contextRef.current.putImageData(idata, 0, 0);
 
+    }
     useEffect(() => {
         const canvas = canvasRef.current!;
         const context = canvas.getContext('2d')!;
-        const buf = generateMandelbrot(center, props.width, props.height, res);
+        const buf = generateMandelbrot(center, props.width, props.height, res,  props.iterations);
         var idata = context!.createImageData(props.width, props.height);
         idata.data.set(buf);
         context!.putImageData(idata, 0, 0);
@@ -90,7 +104,7 @@ function Mandelbrot(props:mandelProp)
         var newC = getNewCenter(event.nativeEvent.offsetX, event.nativeEvent.offsetY, res, props.width, props.height, center);
         setCenter(c=>(newC));
         setRes(a => a*.80);
-        const buf = generateMandelbrot(newC, props.width, props.height, res*.95);
+        const buf = generateMandelbrot(newC, props.width, props.height, res*.90, its);
         var idata = contextRef.current.createImageData(props.width, props.height);
         idata.data.set(buf);
         contextRef.current.putImageData(idata, 0, 0);
@@ -100,7 +114,7 @@ function Mandelbrot(props:mandelProp)
         
         var c = {x: (event.nativeEvent.offsetX - props.width/2)*res, y: (event.nativeEvent.offsetY - props.height/2)*res};
         setRes(a => a*1.0525631);
-        const buf = generateMandelbrot(c, props.width, props.height, res*1.0525631);
+        const buf = generateMandelbrot(c, props.width, props.height, res*1.0525631, its);
         var idata = contextRef.current.createImageData(props.width, props.height);
         idata.data.set(buf);
         contextRef.current.putImageData(idata, 0, 0); 
@@ -114,6 +128,11 @@ function Mandelbrot(props:mandelProp)
                 onClick={clickHandle}
                 onContextMenu={rightClickHandle}
             />
+            <form onSubmit={handleSubmit}>
+            <input type="text" value={its} onChange={(e) => setIterations(its => Number(e.target.value))}/>
+            <button type="submit">submit</button>
+            </form>
+        
             <h1>
                 {res.toString()}
             </h1>
