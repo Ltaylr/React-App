@@ -1,5 +1,4 @@
 import Mandelbrot  from "../components/Mandelbrot.tsx";
-import {FormEvent, useState} from 'react'
 export default function MandelbrotViewer()
 {
     
