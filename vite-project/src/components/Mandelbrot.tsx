@@ -35,17 +35,18 @@ function getColor(its:number, maxIts:number)
     if(its==maxIts) return [0,0,0];
     
     const div:number = its/maxIts;
-    return [0,255*div, 125*div];
+    return [0,255*div, (50 - 50*div)];
 }
-function generateMandelbrot(center:coordinatePair, width:number, height:number, res:number, maxIts=1000)
+function generateMandelbrot(topLeftCorner:coordinatePair, width:number, height:number, res:number, maxIts=1000)
 {
-    const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};
+    //const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};
     const buffer = new Uint8ClampedArray(width * height * 4);
 
     for(var i = 0; i < height; i++)
     {
         for(var j = 0; j < width; j++)
         {
+
             var clr =getColor(getIterations({x:topLeftCorner.x+(j*res),y:topLeftCorner.y-(i*res)}, maxIts),maxIts);
             buffer[(i*width*4)+(j*4)] = clr[0];
             buffer[(i*width*4)+(j*4)+1] = clr[1];
@@ -56,34 +57,34 @@ function generateMandelbrot(center:coordinatePair, width:number, height:number, 
 
     return buffer;
 }
-function getNewCenter(offsetX:number, offsetY:number, res:number, width:number, height:number, oldCenter:coordinatePair)
+
+function getTopLeftCoordinate(clickCoor:coordinatePair, currentCornerCoor:coordinatePair, res:number)
 {
-    var offset = {x:offsetX - width/2, y:offsetY - height/2}
-    offset.x*=res;
-    offset.y*=res;
-    offset.x+=oldCenter.x;
-    offset.y=oldCenter.y-offset.y;
-    
-    return offset;
-     
+    //const hypotenusePixelLength: number = Math.sqrt(clickPoint.x*clickPoint.x + clickPoint.y*clickPoint.y);
+    //const hypotenuseCoorLength: number = Math.sqrt(Math.pow(clickCoor.x - currentCornerCoor.x, 2) + Math.pow(clickCoor.y - currentCornerCoor.y, 2));
+    var y_dif = currentCornerCoor.y - clickCoor.y;
+    var x_dif = clickCoor.x - currentCornerCoor.x;
+    y_dif*=.80;
+    x_dif*=.80;
+    var ret = {x:clickCoor.x - x_dif, y:clickCoor.y+y_dif}
+    return ret;
+
 
 }
-function getTopLeftCoordinate(clickPoint:coordinatePair, clickCoor:coordinatePair, currentCornerCoor:coordinatePair)
+function getClickCoordinate(x:number, y:number, res:number, corner:coordinatePair)
 {
-    const hypotenusePixelLength: number = Math.sqrt(clickPoint.x*clickPoint.x + clickPoint.y*clickPoint.y);
-    const hypotenuseCoorLength: number = Math.sqrt(Math.pow(clickCoor.x - currentCornerCoor.x, 2) + Math.pow(clickCoor.y - currentCornerCoor.y, 2));
-
+    return {x: corner.x + (x*res), y: corner.y - (y*res)};
 }
 function Mandelbrot(props:mandelProp)
 {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const contextRef = useRef<CanvasRenderingContext2D>(null!);
-    const [center, setCenter] = useState({x: 0, y: 0});
+    const [TopLeftCoordinate, setTopLeftCoordinate] = useState({x: -3, y: 2});
     const [res, setRes] = useState(2/(props.height/2));
     const [its, setIterations] = useState(200)
     const handleSubmit = (e:FormEvent) => {
         e.preventDefault()
-        const buf = generateMandelbrot(center, props.width, props.height, res*.90, its);
+        const buf = generateMandelbrot(TopLeftCoordinate, props.width, props.height, res, its);
         var idata = contextRef.current.createImageData(props.width, props.height);
         idata.data.set(buf);
         contextRef.current.putImageData(idata, 0, 0);
@@ -92,7 +93,7 @@ function Mandelbrot(props:mandelProp)
     useEffect(() => {
         const canvas = canvasRef.current!;
         const context = canvas.getContext('2d')!;
-        const buf = generateMandelbrot(center, props.width, props.height, res,  props.iterations);
+        const buf = generateMandelbrot(TopLeftCoordinate, props.width, props.height, res,  props.iterations);
         var idata = context!.createImageData(props.width, props.height);
         idata.data.set(buf);
         context!.putImageData(idata, 0, 0);
@@ -101,10 +102,16 @@ function Mandelbrot(props:mandelProp)
     },[]);
     
     const clickHandle = (event:MouseEvent) => {
-        var newC = getNewCenter(event.nativeEvent.offsetX, event.nativeEvent.offsetY, res, props.width, props.height, center);
-        setCenter(c=>(newC));
+        var newC = getTopLeftCoordinate(
+            getClickCoordinate(
+                event.nativeEvent.offsetX, 
+                event.nativeEvent.offsetY,
+                res,
+                TopLeftCoordinate), TopLeftCoordinate, res);
+
+        setTopLeftCoordinate(c=>(newC));
         setRes(a => a*.80);
-        const buf = generateMandelbrot(newC, props.width, props.height, res*.90, its);
+        const buf = generateMandelbrot(newC, props.width, props.height, res*.80, its);
         var idata = contextRef.current.createImageData(props.width, props.height);
         idata.data.set(buf);
         contextRef.current.putImageData(idata, 0, 0);
@@ -121,25 +128,22 @@ function Mandelbrot(props:mandelProp)
     };
 
     return <>
-     <canvas 
+            <h4>
+                Pixel Resolution: {res.toString()} , Top Left Corner: ({TopLeftCoordinate.x},{TopLeftCoordinate.y})
+            </h4>
+            <canvas 
                 ref={canvasRef} 
                 width={props.width} 
                 height={props.height}
                 onClick={clickHandle}
                 onContextMenu={rightClickHandle}
             />
-            <form onSubmit={handleSubmit}>
-            <input type="text" value={its} onChange={(e) => setIterations(its => Number(e.target.value))}/>
-            <button type="submit">submit</button>
-            </form>
-        
-            <h1>
-                {res.toString()}
-            </h1>
-            <h3>
-                {center.x},{center.y}
-            </h3>
-           
+            <div>
+                <form onSubmit={handleSubmit}>
+                        <input type="text" value={its} onChange={(e) => setIterations(its => Number(e.target.value))}/>
+                        <button type="submit">submit</button>
+                </form>
+            </div>
         </>
 }
 
