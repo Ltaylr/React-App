@@ -1,4 +1,4 @@
-import Mandelbrot  from "../components/Mandelbrot.tsx";
+import Mandelbrot  from "../components/MandelbrotGL.tsx";
 export default function MandelbrotViewer()
 {
     

@@ -1,5 +1,8 @@
 import {useRef, useEffect, useState} from 'react';
 import { MouseEvent, FormEvent } from 'react';
+import { Shaders, Node, GLSL} from 'gl-react';
+import { Surface } from "gl-react-dom";
+
 interface mandelProp
 {
     width:number,
