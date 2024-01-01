@@ -3,6 +3,21 @@ import { MouseEvent, FormEvent } from 'react';
 import { Shaders, Node, GLSL} from 'gl-react';
 import { Surface } from "gl-react-dom";
 
+const shaders = Shaders.create(
+{
+    Mandelbrot:
+    {
+
+        frag: GLSL`
+
+            varying vec2 uv;
+            uniform vec3;
+        `
+    }
+
+}
+
+)
 interface mandelProp
 {
     width:number,
