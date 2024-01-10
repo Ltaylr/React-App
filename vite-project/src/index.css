@@ -53,7 +53,19 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
-
+.mandelbrot-viewer form{
+  
+}
+.mandelbrot-viewer button{
+  border-radius: 2px;
+  font-size: .7em;
+  margin: 4px;
+  background-color: #747bff;
+}
+.mandelbrot-viewer input{
+  margin-left: 4px;
+  
+}
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

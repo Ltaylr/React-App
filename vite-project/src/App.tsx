@@ -1,3 +1,4 @@
+import "./init.js"
 import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom"; 
 import Home from "./pages/Home"; 
@@ -5,6 +6,7 @@ import Blogs from "./pages/Blogs";
 import Contact from "./pages/Contact"; 
 import NoPage from "./pages/NoPage";
 import MandelbrotViewer from './pages/MandelbrotViewer.tsx'
+import MandelbrotGLViewer from './pages/MandelbrotGLViewer.tsx'
 
 interface linkObj
 {
@@ -21,28 +23,34 @@ const pageData:Array<linkObj> =[
       comp: "Home",
     },
     {
-      id: 1,
+      id: 2,
       name: "blogs",
       path: "blogs",
       comp: "Blogs",
     },
     {
-      id: 1,
+      id: 3,
       name: "contact",
       path: "contact",
       comp: "Contact",
     },
     {
-      id: 1,
+      id: 4,
       name: "about",
       path: "about",
       comp: "About",
     },
     {
-      id: 1,
+      id: 5,
       name: "Mandelbrot Viewer",
       path: "mandelbrotViewer",
       comp: "MandelbrotViewer",
+    },
+    {
+      id: 5,
+      name: "Webgl Mandelbrot",
+      path: "mandelbrotViewer",
+      comp: "MandelbrotGLViewer",
     },
 
 ];
@@ -59,6 +67,7 @@ function App() {
           <Route path="/blogs" element={<Blogs />}/>
           <Route path="/contact" element={<Contact />}/>
           <Route path="/mandelbrotviewer" element={<MandelbrotViewer />}/>
+          <Route path="/mandelbrotglviewer" element={<MandelbrotGLViewer />}/>
           <Route path="*" element={<NoPage />}/>
       </Routes>
     </BrowserRouter>

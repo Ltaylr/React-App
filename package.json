@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "gl-react": "^5.2.0",
+    "gl-react-dom": "^5.2.1",
     "react-router-dom": "^6.21.1"
   }
 }
