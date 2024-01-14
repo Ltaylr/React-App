@@ -1,9 +1,5 @@
-interface coordinatePair
-{
-    x:number,
-    y:number
-}
-function getIterations(coor:coordinatePair, maxIts:number)
+
+function getIterations(coor, maxIts)
 {
     var its = 0;
     var zx = 0;
@@ -23,12 +19,12 @@ function getIterations(coor:coordinatePair, maxIts:number)
 
     return its;
 }
-function getColor(its:number, maxIts:number)
+function getColor(its, maxIts)
 {
     //just grayscale for now
     if(its==maxIts) return [0,0,0];
     
-    var div:number = its/maxIts;//Math.log(its)/Math.log(maxIts);
+    var div = its/maxIts;//Math.log(its)/Math.log(maxIts);
     //var div2 = Math.abs(div - .5)
     var color = [255*div,80*div, 200*div];
     //if(its > maxIts*.5)
@@ -37,8 +33,9 @@ function getColor(its:number, maxIts:number)
     //}
     return color;
 }
-function generateMandelbrot(topLeftCorner:coordinatePair, width:number, height:number, res:number, maxIts=1000, samplesPerPixel=15, colorFunc=getColor)
+function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=15, colorFunc=getColor)
 {
+    var start = performance.now();
     //const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};
     const buffer = new Uint8ClampedArray(width * height * 4);
 
@@ -61,9 +58,11 @@ function generateMandelbrot(topLeftCorner:coordinatePair, width:number, height:n
             buffer[(offset_i)+(j*4)+3] = 255;
         }
     }
-
+    var end = performance.now();
+    console.log(`   time to complete ${maxIts} iterations: ${end - start}`)
     return buffer;
 }
 
 export default generateMandelbrot;
+
 

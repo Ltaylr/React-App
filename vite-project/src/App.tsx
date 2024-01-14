@@ -49,7 +49,7 @@ const pageData:Array<linkObj> =[
     {
       id: 5,
       name: "Webgl Mandelbrot",
-      path: "mandelbrotViewer",
+      path: "mandelbrotGLViewer",
       comp: "MandelbrotGLViewer",
     },
 

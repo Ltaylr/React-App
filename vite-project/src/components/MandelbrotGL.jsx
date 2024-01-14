@@ -44,7 +44,21 @@ function drawMandelbrotFunc(reglContext, maxIts, fPoint, tPoint, width, height, 
             uniform vec2 u_resolution;
             uniform vec2 fromPoint;
             uniform vec2 toPoint;
-            
+
+            vec4 colorFunction(int its, int maxIts)
+            {
+                if(its == maxIts)
+                {
+
+                }
+                else
+                {
+
+                }
+
+                return vec4(0,0,0,0);
+            }
+
             void main(){ 
                 vec2 uv = gl_FragCoord.xy / u_resolution;
                 float nextXcoor = (gl_FragCoord.x + 1.0) / u_resolution.x;
@@ -86,11 +100,23 @@ function drawMandelbrotFunc(reglContext, maxIts, fPoint, tPoint, width, height, 
                         if(zx2 + zy2 > 4.0) break;
                     }
                 }
-                xtemp = float(its)/float(maxIts);//(log(float(its)/float(samples)))/log(float(maxIts));
-                if(its == maxIts) gl_FragColor = vec4(xtemp, xtemp*.5, xtemp*.98, 1.0);
-                else {
-                    gl_FragColor = vec4( xtemp, xtemp*.3, xtemp*.87, 1.0);
+                xtemp = (log(float(its)/float(samples)))/log(float(maxIts)); //
+                //xtemp = float(its)/float(maxIts);//
+                if(its == maxIts) gl_FragColor = vec4(0.0,.0,0.0, 1.0);
+                else
+                {
+                float temp2 = (1.0 - xtemp);// * xtemp;
+                vec4 color1 = vec4(temp2*.05, temp2*.05, temp2*.2, 1.0);
+                vec4 color2 = vec4(xtemp, xtemp*.3, xtemp*.87, 1.0);
+                gl_FragColor = color1 + color2;
                 }
+                //else if(its < maxIts/2)
+                //{
+                //    gl_FragColor = vec4
+                //}
+                //else {
+                //    gl_FragColor = vec4( xtemp, xtemp*.3, xtemp*.87, 1.0);
+                //}
             }`,
             uniforms:{
                 fromPoint: reglContext.prop('fromPoint'),
@@ -127,7 +153,7 @@ function MandelbrotGL(props)
     const contextRef = useRef(null);
     const [BottomLeftCoordinate, setBottomLeftCoordinate] = useState({x: -2.5, y: -1.4});
     const [TopRightCoordinate, setTopRightCoordinate] = useState({x: -2.5, y: -1.4});
-    const [res, setRes] = useState(.0035);
+    const [res, setRes] = useState(.0025);
     const [its, setIterations] = useState(200)
     const [samples, setSamples] = useState(props.sampleNo)
 

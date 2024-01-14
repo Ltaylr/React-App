@@ -3,7 +3,15 @@ export interface coordinatePair
     x:number,
     y:number
 }
+export interface workerBufferPair
+{
+    worker: Worker,
+    id: number,
+    xcoor: number,
+    width: number,
+    buffer: Uint8ClampedArray
 
+}
 export function getTopLeftCoordinate(clickCoor:coordinatePair, currentCornerCoor:coordinatePair)
 {
     //const hypotenusePixelLength: number = Math.sqrt(clickPoint.x*clickPoint.x + clickPoint.y*clickPoint.y);
@@ -33,11 +41,11 @@ export function setInitialData(
     context!.putImageData(idata, x, y);
     contextRef.current = context;
 }
-export function setData(contextRef:React.MutableRefObject<CanvasRenderingContext2D>, data:Uint8ClampedArray, width:number, height:number, x:number, y:number)
-{
-    var idata = contextRef.current.createImageData(width, height);
-        idata.data.set(data);
-        contextRef.current.putImageData(idata, x, y);
-}
+//export function setData(contextRef:React.MutableRefObject<CanvasRenderingContext2D>, data:Uint8ClampedArray, width:number, height:number, x:number, y:number)
+//{
+//    var idata = contextRef.current.createImageData(width, height);
+//        idata.data.set(data);
+//        contextRef.current.putImageData(idata, x, y);
+//}
 
 //export default {setData, setInitialData, getClickCoordinate, getTopLeftCoordinate};
