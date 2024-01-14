@@ -9,7 +9,7 @@ export interface workerBufferPair
     id: number,
     xcoor: number,
     width: number,
-    buffer: Uint8ClampedArray
+    buffer: SharedArrayBuffer
 
 }
 export function getTopLeftCoordinate(clickCoor:coordinatePair, currentCornerCoor:coordinatePair)

@@ -34,7 +34,8 @@ function spawnMandelbrotWorkers(props:workerProp, workerNum: number, context:Rea
             //setData(context,new Uint8ClampedArray(e.data.imageData), workerArray[e.data.id].width, props.height,workerArray[e.data.id].xcoor,0);
             //workerArray[e.data.id].terminate();
             var idata = context.current.createImageData(workerArray[e.data.id].width, props.height);
-            idata.data.set(e.data.imageData);
+            var data = new Uint8ClampedArray(e.data.imageData);
+            idata.data.set(data);
             context.current.putImageData(idata, workerArray[e.data.id].xcoor, 0);
             workersRunning--;
             if(workersRunning === 0)
@@ -48,7 +49,7 @@ function spawnMandelbrotWorkers(props:workerProp, workerNum: number, context:Rea
         //workerArray.push(worker)
         wProp.width = workerArray[i].width;
         wProp.topLeftCoor.x += (workerArray[i].xcoor*props.resolution);
-        workerArray[i].worker.postMessage({props:wProp, id:i, totalWorkers: workerNum})
+        workerArray[i].worker.postMessage({props:wProp, id:i, totalWorkers: workerNum, buffer:workerArray[i].buffer})
         workersRunning++;
     }
     
@@ -80,9 +81,10 @@ function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>,
                     id: i,
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
-                    buffer: new Uint8ClampedArray((fixedWidth * height * 4)/workerNum)
+                    buffer: new SharedArrayBuffer(fixedWidth * height * 4)
                 }
             )
+            
         }
     }
     if(workerNum < workerArray.length)
@@ -94,14 +96,14 @@ function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>,
         workerArray = workerArray.slice(0, workerNum);
         for(var i = 0; i < workerArray.length; i++)
         {
-            workerArray[i].buffer = new Uint8ClampedArray(Math.floor(((width/workerNum)*height*4)/workerNum));
+            workerArray[i].buffer = new SharedArrayBuffer(fixedWidth * height * 4)
         }
     }
     else{
         
         for(var i = 0; i < workerArray.length; i++)
         {
-            workerArray[i].buffer = workerArray[i].buffer.slice(0,(fixedWidth * height * 4)/workerNum)
+            workerArray[i].buffer = workerArray[i].buffer.slice(0,(fixedWidth * height * 4))
             workerArray[i].xcoor = fixedWidth*i
         }
         for(var i = workerArray.length; i < workerNum - 1; i++)
@@ -113,7 +115,7 @@ function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>,
                     id: i,
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
-                    buffer: new Uint8ClampedArray((fixedWidth * height * 4)/workerNum)
+                    buffer: new SharedArrayBuffer((fixedWidth * height * 4))
                 }
             )
         }
@@ -129,7 +131,7 @@ function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>,
             id: workerNum - 1,
             xcoor: pos,
             width: leftovers,
-            buffer: new Uint8ClampedArray((leftovers * height * 4)/workerNum)
+            buffer: new SharedArrayBuffer((leftovers * height * 4))
         }
     )
     return workerArray;
@@ -145,6 +147,7 @@ function Mandelbrot(props:mandelProp)
     const [samples, setSamples] = useState(props.sampleNo);
     const [workerNum, setWorkerNum] = useState(2);
     const [workerArray, setWorkerArray] = useState<workerBufferPair[]>([]);
+
     const handleSubmit = (e:FormEvent) => {
         e.preventDefault()
         if(workerNum === 1)

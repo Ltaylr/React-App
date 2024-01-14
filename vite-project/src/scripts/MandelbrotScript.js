@@ -33,7 +33,7 @@ function getColor(its, maxIts)
     //}
     return color;
 }
-function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=15, colorFunc=getColor)
+function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=15, colorFunc=getColor )
 {
     var start = performance.now();
     //const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};

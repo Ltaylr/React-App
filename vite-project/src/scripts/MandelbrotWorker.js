@@ -33,10 +33,10 @@ function getColor(its, maxIts)
     //}
     return color;
 }
-function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=15, colorFunc=getColor)
+function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=15, colorFunc=getColor, buffer)
 {
     //const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};
-    const buffer = new Uint8ClampedArray(width * height * 4);
+    //const buffer = new Uint8ClampedArray(width * height * 4);
 
     for(var i = 0; i < height; i++)
     {
@@ -63,10 +63,11 @@ function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samp
 
 self.addEventListener('message', function(e) {
     const props = e.data.props;
+    var buffer = new Uint8ClampedArray(e.data.buffer);
     //var corner = {x:props.topLeftCoor.x + ((props.resolution*props.width) * (e.data.id/e.data.totalWorkers)), y:props.topLeftCoor.y};
-    var img = generateMandelbrot(props.topLeftCoor,props.width,props.height,props.resolution, props.iterations, props.sampleNo);
+    generateMandelbrot(props.topLeftCoor,props.width,props.height,props.resolution, props.iterations, props.sampleNo, getColor, buffer);
     
-    self.postMessage({id:e.data.id, imageData:img},[img.buffer]);
+    self.postMessage({id:e.data.id, imageData:buffer})//,[buffer.buffer]);
     
     }, false);
 //onmessage = function (e)
