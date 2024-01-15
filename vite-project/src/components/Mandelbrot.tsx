@@ -34,7 +34,7 @@ function spawnMandelbrotWorkers(props:workerProp, workerNum: number, context:Rea
             //setData(context,new Uint8ClampedArray(e.data.imageData), workerArray[e.data.id].width, props.height,workerArray[e.data.id].xcoor,0);
             //workerArray[e.data.id].terminate();
             var idata = context.current.createImageData(workerArray[e.data.id].width, props.height);
-            var data = new Uint8ClampedArray(e.data.imageData);
+            var data = new Uint8ClampedArray(workerArray[e.data.id].buffer);
             idata.data.set(data);
             context.current.putImageData(idata, workerArray[e.data.id].xcoor, 0);
             workersRunning--;
@@ -65,15 +65,12 @@ function setData(contextRef:React.MutableRefObject<CanvasRenderingContext2D>, da
 function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>, width:number, height:number)
 {
     const fixedWidth = Math.round((width/workerNum)) - (workerNum*3);
-
-    if(workerNum == workerArray.length)
-    {
-        return workerArray;
-    }
+    const leftovers = width - fixedWidth * (workerNum - 1);
+    const pos = fixedWidth*(workerNum - 1);
 
     if(workerArray.length == 0)
     {
-        for(var i = 0; i < workerNum - 1; i++)
+        for(var i = 0; i < workerNum; i++)
         {
             workerArray.push(
                 {
@@ -87,24 +84,34 @@ function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>,
             
         }
     }
-    if(workerNum < workerArray.length)
+    else if(workerNum < workerArray.length)
     {
         for(var i = workerArray.length - 1; i >= workerNum; i--)
         {
             workerArray[i].worker.terminate();
         }
         workerArray = workerArray.slice(0, workerNum);
-        for(var i = 0; i < workerArray.length; i++)
+        for(var i = 0; i < workerArray.length - 1; i++)
         {
             workerArray[i].buffer = new SharedArrayBuffer(fixedWidth * height * 4)
+            workerArray[i].xcoor = fixedWidth*i,
+            workerArray[i].width = fixedWidth
         }
+
+        workerArray[workerArray.length - 1].id = workerNum - 1;
+        workerArray[workerArray.length - 1].xcoor= pos;
+        workerArray[workerArray.length - 1].width= leftovers;
+        workerArray[workerArray.length - 1].buffer= new SharedArrayBuffer((leftovers * height * 4));
+
+        //return workerArray;
     }
-    else{
+    else if(workerNum > workerArray.length){
         
         for(var i = 0; i < workerArray.length; i++)
         {
             workerArray[i].buffer = workerArray[i].buffer.slice(0,(fixedWidth * height * 4))
             workerArray[i].xcoor = fixedWidth*i
+            workerArray[i].width = fixedWidth
         }
         for(var i = workerArray.length; i < workerNum - 1; i++)
         {
@@ -120,20 +127,19 @@ function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>,
             )
         }
 
+        workerArray.push(
+            {
+                worker: new Worker("../src/scripts/MandelbrotWorker.js"),
+                id: workerNum - 1,
+                xcoor: pos,
+                width: leftovers,
+                buffer: new SharedArrayBuffer((leftovers * height * 4))
+            }
+        )
         
     }
 
-    const leftovers = width - fixedWidth * (workerNum - 1);
-    const pos = fixedWidth*(workerNum - 1);
-    workerArray.push(
-        {
-            worker: new Worker("../src/scripts/MandelbrotWorker.js"),
-            id: workerNum - 1,
-            xcoor: pos,
-            width: leftovers,
-            buffer: new SharedArrayBuffer((leftovers * height * 4))
-        }
-    )
+    
     return workerArray;
 }
 function Mandelbrot(props:mandelProp)
@@ -147,6 +153,7 @@ function Mandelbrot(props:mandelProp)
     const [samples, setSamples] = useState(props.sampleNo);
     const [workerNum, setWorkerNum] = useState(2);
     const [workerArray, setWorkerArray] = useState<workerBufferPair[]>([]);
+    //const [sharedBuffer] = useRef<SharedArrayBuffer>(new SharedArrayBuffer(props.width*props.height*4)); 
 
     const handleSubmit = (e:FormEvent) => {
         e.preventDefault()
