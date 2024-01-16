@@ -1,3 +1,4 @@
+import {getColor} from '../helperFiles/ColorFuncs'
 
 function getIterations(coor, maxIts)
 {
@@ -19,22 +20,10 @@ function getIterations(coor, maxIts)
 
     return its;
 }
-function getColor(its, maxIts)
+
+function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=15, colorFunc=1 )
 {
-    //just grayscale for now
-    if(its==maxIts) return [0,0,0];
-    
-    var div = its/maxIts;//Math.log(its)/Math.log(maxIts);
-    //var div2 = Math.abs(div - .5)
-    var color = [255*div,80*div, 200*div];
-    //if(its > maxIts*.5)
-    //{
-    //    color = [255*div,80*div, 200*div]
-    //}
-    return color;
-}
-function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=15, colorFunc=getColor )
-{
+    const func = getColor(colorFunc);
     var start = performance.now();
     //const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};
     const buffer = new Uint8ClampedArray(width * height * 4);
@@ -51,7 +40,7 @@ function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samp
                 its+=getIterations({x:topLeftCorner.x+(j*res)+inc,y:topLeftCorner.y-(i*res)+inc}, maxIts)
                 
             }
-            var clr = colorFunc((its/samplesPerPixel), maxIts);
+            var clr = func((its/samplesPerPixel), maxIts);
             buffer[(offset_i)+(j*4)] = clr[0];
             buffer[(offset_i)+(j*4)+1] = clr[1];
             buffer[(offset_i)+(j*4)+2] = clr[2];

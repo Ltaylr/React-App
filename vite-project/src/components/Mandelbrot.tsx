@@ -2,15 +2,9 @@ import {useRef, useEffect, useState} from 'react';
 import { MouseEvent, FormEvent } from 'react';
 import generateMandelbrot from '../scripts/MandelbrotScript'
 import { spawnMandelbrotWorkers, buildWorkerArray, workerProp, workerBufferPair } from '../helperFiles/WorkerSpawningHelpers';
-import {setInitialData, getClickCoordinate, getTopLeftCoordinate} from '../helperFiles/MandelbrotHelpers'
-interface mandelProp
-{
-    width:number,
-    height:number,
-    iterations:number,
-    sampleNo:number, 
-    workers:number
-}
+import {setInitialData, getClickCoordinate, getTopLeftCoordinate, mandelProp} from '../helperFiles/MandelbrotHelpers'
+
+
 
 function setData(contextRef:React.MutableRefObject<CanvasRenderingContext2D>, data:Uint8ClampedArray, width:number, height:number, x:number, y:number)
 {
@@ -18,6 +12,7 @@ function setData(contextRef:React.MutableRefObject<CanvasRenderingContext2D>, da
         idata.data.set(data);
         contextRef.current.putImageData(idata, x, y);
 }
+
 function Mandelbrot(props:mandelProp)
 {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -75,7 +70,7 @@ function Mandelbrot(props:mandelProp)
                 event.nativeEvent.offsetX, 
                 event.nativeEvent.offsetY,
                 res,
-                TopLeftCoordinate), TopLeftCoordinate);
+                TopLeftCoordinate), TopLeftCoordinate, .80);
 
         setTopLeftCoordinate(c=>(newC));
         setRes(a => a*.80);
@@ -103,17 +98,42 @@ function Mandelbrot(props:mandelProp)
 
     const rightClickHandle = (event:MouseEvent) => {
         
-        var c = {x: (event.nativeEvent.offsetX - props.width/2)*res, y: (event.nativeEvent.offsetY - props.height/2)*res};
-        setRes(a => a*1.0525631);
-        const buf = generateMandelbrot(c, props.width, props.height, res*1.0525631, its, samples);
-        setData(contextRef, buf, props.width, props.height, 0,0);
+        event.preventDefault();
+        var newC = getTopLeftCoordinate(
+            getClickCoordinate(
+                event.nativeEvent.offsetX, 
+                event.nativeEvent.offsetY,
+                res,
+                TopLeftCoordinate), TopLeftCoordinate, 1.15);
+
+        setTopLeftCoordinate(c=>(newC));
+        setRes(a => a*1.15);
+        
+        
+        if(workerNum === 1)
+        {
+            var start = performance.now();
+            const buf = generateMandelbrot(newC, props.width, props.height, res*1.15, its, samples);
+            setData(contextRef, buf, props.width, props.height, 0,0);
+            console.log(`time for just main thread to finish render: ${performance.now() - start}`)
+        }
+        else{
+            const wProp:workerProp = {
+                topLeftCoor:newC,
+                width:props.width,
+                height:props.height,
+                iterations:its, 
+                sampleNo:samples,
+                resolution:res*1.15
+            }
+            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray);
+        }
     };
 
     return <>
-            <h4>
-                Pixel Resolution: {res.toString()} , Top Left Corner: ({TopLeftCoordinate.x},{TopLeftCoordinate.y})
-            </h4>
-            <div>
+            
+            <div className="mand-container">
+                <div className="mand-item">
                 <canvas 
                     ref={canvasRef} 
                     width={props.width} 
@@ -121,23 +141,30 @@ function Mandelbrot(props:mandelProp)
                     onClick={clickHandle}
                     onContextMenu={rightClickHandle}
                 />
-                <form onSubmit={handleSubmit}>
-                        <div>
-                            Iterations per pixel: 
-                            <input type="text" value={its} onChange={(e) => setIterations(its => Number(e.target.value))}/>
+                </div>
+                <div className="mand-item" id='mand-submit'>
+                    <h4>
+                    Pixel Resolution: {res.toString()} <br></br> Top Left Corner: ({TopLeftCoordinate.x},{TopLeftCoordinate.y})
+                    </h4>
+                    <form onSubmit={handleSubmit}>
+
+                            <div>
+                                Iterations: 
+                                <input type="text" value={its} onChange={(e) => setIterations(its => Number(e.target.value))}/>
+
+                            </div>
+                            <div>
+                                Samples: 
+                                <input type="text" value={samples} onChange={(e) => setSamples(samples => Number(e.target.value))}/>
+
+                            </div>
+                            <div>
+                                Threads: 
+                                <input type="text" value={workerNum} onChange={(e) => setWorkerNum(workerNum => Number(e.target.value))}/>
+                            </div>
                             <button type="submit">submit</button>
-                        </div>
-                        <div>
-                            Samples per pixel: 
-                            <input type="text" value={samples} onChange={(e) => setSamples(samples => Number(e.target.value))}/>
-                            <button type="submit">submit</button>
-                        </div>
-                        <div>
-                            Number of WebWorkers: 
-                            <input type="text" value={workerNum} onChange={(e) => setWorkerNum(workerNum => Number(e.target.value))}/>
-                            <button type="submit">submit</button>
-                        </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </>
 }

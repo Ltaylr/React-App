@@ -18,25 +18,25 @@ interface linkObj
 const pageData:Array<linkObj> =[
     {
       id: 1,
-      name: "home",
+      name: "Home",
       path: "home",
       comp: "Home",
     },
     {
       id: 2,
-      name: "blogs",
+      name: "Blogs",
       path: "blogs",
       comp: "Blogs",
     },
     {
       id: 3,
-      name: "contact",
+      name: "Contact",
       path: "contact",
       comp: "Contact",
     },
     {
       id: 4,
-      name: "about",
+      name: "About",
       path: "about",
       comp: "About",
     },
@@ -60,6 +60,11 @@ function App() {
 
   return (
     <div className="App">
+      <div className="side-nav">
+      {
+        pageData.map((item, index) => (<a key={index} href={item.path}>{item.name}</a>))
+      }
+      </div>
     <BrowserRouter>
       <Routes>
           <Route path="/" element={<Home />}/>
@@ -71,11 +76,7 @@ function App() {
           <Route path="*" element={<NoPage />}/>
       </Routes>
     </BrowserRouter>
-    <div className="side-nav">
-      {
-        pageData.map((item, index) => (<a key={index} href={item.path}>{item.name}</a>))
-      }
-    </div>
+    
     </div>
   )
 }

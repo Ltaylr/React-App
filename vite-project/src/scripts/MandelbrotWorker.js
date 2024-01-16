@@ -1,3 +1,36 @@
+function simplePink(its, maxIts)
+{
+    if(its==maxIts) return [0,0,0];
+    
+    var div = its/maxIts;//Math.log(its)/Math.log(maxIts);
+    //var div2 = Math.abs(div - .5)
+    var color = [255*div,80*div, 200*div];
+    //if(its > maxIts*.5)
+    //{
+    //    color = [255*div,80*div, 200*div]
+    //}
+    return color;
+}
+function logPink(its, maxIts)
+{
+    if(its==maxIts) return [0,0,0];
+    
+    var div = Math.log(its)/Math.log(maxIts);
+    //var div2 = Math.abs(div - .5)
+    var color = [255*div,80*div, 200*div];
+    //if(its > maxIts*.5)
+    //{
+    //    color = [255*div,80*div, 200*div]
+    //}
+    return color;
+}
+var colorArray = []
+colorArray.push(simplePink);
+colorArray.push(logPink);
+function getColor(index)
+{
+    return colorArray[index];
+}
 
 function getIterations(coor, maxIts)
 {
@@ -19,21 +52,21 @@ function getIterations(coor, maxIts)
 
     return its;
 }
-function getColor(its, maxIts)
-{
-    //just grayscale for now
-    if(its==maxIts) return [0,0,0];
-    
-    var div = its/maxIts;//Math.log(its)/Math.log(maxIts);
-    //var div2 = Math.abs(div - .5)
-    var color = [255*div,80*div, 200*div];
-    //if(its > maxIts*.5)
-    //{
-    //    color = [255*div,80*div, 200*div]
-    //}
-    return color;
-}
-function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=1, colorFunc=getColor, buffer)
+//function getColor(its, maxIts)
+//{
+//    //just grayscale for now
+//    if(its==maxIts) return [0,0,0];
+//    
+//    var div = its/maxIts;//Math.log(its)/Math.log(maxIts);
+//    //var div2 = Math.abs(div - .5)
+//    var color = [255*div,80*div, 200*div];
+//    //if(its > maxIts*.5)
+//    //{
+//    //    color = [255*div,80*div, 200*div]
+//    //}
+//    return color;
+//}
+function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=1, colorFunc=simplePink, buffer)
 {
     //const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};
     //const buffer = new Uint8ClampedArray(width * height * 4);
@@ -65,7 +98,7 @@ self.addEventListener('message', function(e) {
     const props = e.data.props;
     var buffer = new Uint8ClampedArray(e.data.buffer);
     //var corner = {x:props.topLeftCoor.x + ((props.resolution*props.width) * (e.data.id/e.data.totalWorkers)), y:props.topLeftCoor.y};
-    generateMandelbrot(props.topLeftCoor,props.width,props.height,props.resolution, props.iterations, props.sampleNo, getColor, buffer);
+    generateMandelbrot(props.topLeftCoor,props.width,props.height,props.resolution, props.iterations, props.sampleNo, colorArray[1], buffer);
     
     self.postMessage({id:e.data.id})//,[buffer.buffer]);
     

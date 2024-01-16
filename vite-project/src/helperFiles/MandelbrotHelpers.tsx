@@ -1,25 +1,24 @@
+export interface mandelProp
+{
+    width:number,
+    height:number,
+    iterations:number,
+    sampleNo:number, 
+    workers:number
+}
 export interface coordinatePair
 {
     x:number,
     y:number
 }
-export interface workerBufferPair
-{
-    worker: Worker,
-    id: number,
-    xcoor: number,
-    width: number,
-    buffer: SharedArrayBuffer
-
-}
-export function getTopLeftCoordinate(clickCoor:coordinatePair, currentCornerCoor:coordinatePair)
+export function getTopLeftCoordinate(clickCoor:coordinatePair, currentCornerCoor:coordinatePair, Zoom:number)
 {
     //const hypotenusePixelLength: number = Math.sqrt(clickPoint.x*clickPoint.x + clickPoint.y*clickPoint.y);
     //const hypotenuseCoorLength: number = Math.sqrt(Math.pow(clickCoor.x - currentCornerCoor.x, 2) + Math.pow(clickCoor.y - currentCornerCoor.y, 2));
     var y_dif = currentCornerCoor.y - clickCoor.y;
     var x_dif = clickCoor.x - currentCornerCoor.x;
-    y_dif*=.80;
-    x_dif*=.80;
+    y_dif*=Zoom;
+    x_dif*=Zoom;
     var ret = {x:clickCoor.x - x_dif, y:clickCoor.y+y_dif}
     return ret;
 

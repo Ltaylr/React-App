@@ -69,7 +69,7 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
         {
             workerArray.push(
                 {
-                    worker: new Worker("../src/scripts/MandelbrotWorker.js"),
+                    worker: new Worker("../src/scripts/MandelbrotWorker.js", {type:'module'}),
                     id: i,
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
@@ -113,7 +113,7 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
             
             workerArray.push(
                 {
-                    worker: new Worker("../src/scripts/MandelbrotWorker.js"),
+                    worker: new Worker("../src/scripts/MandelbrotWorker.js",{type:'module'}),
                     id: i,
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
