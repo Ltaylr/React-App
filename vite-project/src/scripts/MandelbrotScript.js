@@ -1,4 +1,4 @@
-import {getColor} from '../helperFiles/ColorFuncs'
+import {getColor, colorTransition} from '../helperFiles/ColorFuncs'
 
 function getIterations(coor, maxIts)
 {
@@ -21,9 +21,11 @@ function getIterations(coor, maxIts)
     return its;
 }
 
-function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=15, colorFunc=1 )
+function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=15, palette)
 {
-    const func = getColor(colorFunc);
+    const arr = [{r:255,g:80,b:100}, {r:0,g:0,b:255}]
+    //const func = getColor(colorFunc);
+    const plt = new Uint8ClampedArray(palette)
     var start = performance.now();
     //const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};
     const buffer = new Uint8ClampedArray(width * height * 4);
@@ -40,10 +42,11 @@ function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samp
                 its+=getIterations({x:topLeftCorner.x+(j*res)+inc,y:topLeftCorner.y-(i*res)+inc}, maxIts)
                 
             }
-            var clr = func((its/samplesPerPixel), maxIts);
-            buffer[(offset_i)+(j*4)] = clr[0];
-            buffer[(offset_i)+(j*4)+1] = clr[1];
-            buffer[(offset_i)+(j*4)+2] = clr[2];
+            //Math.Floor fixes error with palette getting wrong color on transitional pixels with multisampling but error looked cool - need to find a consistent way to reproduce it
+            var clrIndex = Math.floor(its/samplesPerPixel)*3;//func((its/samplesPerPixel), maxIts);
+            buffer[(offset_i)+(j*4)] = plt[clrIndex];
+            buffer[(offset_i)+(j*4)+1] = plt[clrIndex+1];
+            buffer[(offset_i)+(j*4)+2] = plt[clrIndex+2];
             buffer[(offset_i)+(j*4)+3] = 255;
         }
     }

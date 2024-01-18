@@ -3,7 +3,7 @@ import { MouseEvent, FormEvent } from 'react';
 import generateMandelbrot from '../scripts/MandelbrotScript'
 import { spawnMandelbrotWorkers, buildWorkerArray, workerProp, workerBufferPair } from '../helperFiles/WorkerSpawningHelpers';
 import {setInitialData, getClickCoordinate, getTopLeftCoordinate, mandelProp} from '../helperFiles/MandelbrotHelpers'
-
+import { fillPalette } from '../helperFiles/ColorFuncs';
 
 
 function setData(contextRef:React.MutableRefObject<CanvasRenderingContext2D>, data:Uint8ClampedArray, width:number, height:number, x:number, y:number)
@@ -22,21 +22,30 @@ function Mandelbrot(props:mandelProp)
     const [its, setIterations] = useState(props.iterations);
     const [maxWorkers] = useState(24);
     const [samples, setSamples] = useState(props.sampleNo);
-    const [workerNum, setWorkerNum] = useState(2);
+    const [workerNum, setWorkerNum] = useState(1);
     const [workerArray, setWorkerArray] = useState<workerBufferPair[]>([]);
+    const [paletteBuffer, setPaletteBuffer] = useState<SharedArrayBuffer>(new SharedArrayBuffer(3*its));
     //const [sharedBuffer] = useRef<SharedArrayBuffer>(new SharedArrayBuffer(props.width*props.height*4)); 
 
     const handleSubmit = (e:FormEvent) => {
         e.preventDefault()
+        var pbuf = paletteBuffer;
+        if(its*3 !== paletteBuffer.byteLength)
+        {   
+            pbuf = new SharedArrayBuffer(3*its);
+            fillPalette(its, new Uint8ClampedArray(pbuf));
+            setPaletteBuffer(pB=>pbuf);
+            
+        }
         if(workerNum === 1)
         {
             var start = performance.now();
-            const buf = generateMandelbrot(TopLeftCoordinate, props.width, props.height, res, its, samples);
+            const buf = generateMandelbrot(TopLeftCoordinate, props.width, props.height, res, its, samples, pbuf);
             setData(contextRef, buf, props.width, props.height, 0,0);
             console.log(`time for just main thread to finish render: ${performance.now() - start}`)
         }
         else{
-            if(workerNum != workerArray.length)
+            if(workerNum !== workerArray.length)
             {
                 var newArr = buildWorkerArray(workerNum,workerArray,props.width, props.height)
                 setWorkerArray(arr=>newArr);
@@ -57,7 +66,8 @@ function Mandelbrot(props:mandelProp)
 
     }
     useEffect(() => {
-        const buf = generateMandelbrot(TopLeftCoordinate, props.width, props.height, res,  props.iterations, samples);
+        fillPalette(its, new Uint8ClampedArray(paletteBuffer))
+        const buf = generateMandelbrot(TopLeftCoordinate, props.width, props.height, res,  props.iterations, samples, paletteBuffer);
         setInitialData(canvasRef,contextRef,buf,0,0,props.width, props.height);
         var arr = buildWorkerArray(workerNum, workerArray, props.width, props.height);
         setWorkerArray(a=>arr);
@@ -79,7 +89,7 @@ function Mandelbrot(props:mandelProp)
         if(workerNum === 1)
         {
             var start = performance.now();
-            const buf = generateMandelbrot(newC, props.width, props.height, res*.80, its, samples);
+            const buf = generateMandelbrot(newC, props.width, props.height, res*.80, its, samples, paletteBuffer);
             setData(contextRef, buf, props.width, props.height, 0,0);
             console.log(`time for just main thread to finish render: ${performance.now() - start}`)
         }
@@ -113,7 +123,7 @@ function Mandelbrot(props:mandelProp)
         if(workerNum === 1)
         {
             var start = performance.now();
-            const buf = generateMandelbrot(newC, props.width, props.height, res*1.15, its, samples);
+            const buf = generateMandelbrot(newC, props.width, props.height, res*1.15, its, samples, paletteBuffer);
             setData(contextRef, buf, props.width, props.height, 0,0);
             console.log(`time for just main thread to finish render: ${performance.now() - start}`)
         }

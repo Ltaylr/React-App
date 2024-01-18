@@ -31,7 +31,26 @@ function getColor(index)
 {
     return colorArray[index];
 }
+function colorTransition(colors, its, maxIts)  
+{
+    const percentage = its/maxIts;
+    const step = 100/colors.length;
+    var place = 0;
+    while(step*place < percentage)
+    {
+        place++;
+    }
+    const percentBetween = (percentage - (place - 1)*step) / step;
+    return {r:lerp(colors[place - 1].r, colors[place].r, percentBetween),
+            g:lerp(colors[place - 1].g, colors[place].g, percentBetween),
+            b:lerp(colors[place - 1].b, colors[place].b, percentBetween)}
 
+}
+function lerp(x, y, n)
+{
+    //get difference
+    return x + (y - x)*n
+}
 function getIterations(coor, maxIts)
 {
     var its = 0;
@@ -70,7 +89,7 @@ function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samp
 {
     //const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};
     //const buffer = new Uint8ClampedArray(width * height * 4);
-
+    const arr = [{r:255,g:0,b:0}, {r:0,g:0,b:255}]
     for(var i = 0; i < height; i++)
     {
         var offset_i = i*width*4; //Precompute here doesn't speed up anything, compiler already does this. 
@@ -98,7 +117,7 @@ self.addEventListener('message', function(e) {
     const props = e.data.props;
     var buffer = new Uint8ClampedArray(e.data.buffer);
     //var corner = {x:props.topLeftCoor.x + ((props.resolution*props.width) * (e.data.id/e.data.totalWorkers)), y:props.topLeftCoor.y};
-    generateMandelbrot(props.topLeftCoor,props.width,props.height,props.resolution, props.iterations, props.sampleNo, colorArray[1], buffer);
+    generateMandelbrot(props.topLeftCoor,props.width,props.height,props.resolution, props.iterations, props.sampleNo, colorArray[0], buffer);
     
     self.postMessage({id:e.data.id})//,[buffer.buffer]);
     
