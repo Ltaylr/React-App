@@ -20,37 +20,47 @@ var theme2:theme =
 {
     colors:
     [{pos: 0.0, col:[0,0,0]},
-    {pos: 0.2, col:[80,10,80]},
-    {pos: 0.5, col:[180,125,90]},
-    {pos: 0.8, col:[255,125,255]},
-    {pos: 0.95,col:[20,20,255]},
+    {pos: 0.5, col:[255,80,200]},
+    //{pos: 0.8, col:[255,100,230]},
+    {pos: 0.97, col:[30,10,120]},
     {pos: 1.0, col:[0,0,0]}]
 
 }
 const themeArray:Array<theme> = new Array<theme>(theme1);
 
-export function fillPalette(maxIts:number, paletteBuffer: Uint8ClampedArray, theme:theme=theme1)
+export function fillPalette(maxIts:number, paletteBuffer: Uint8ClampedArray, scale='linear', theme:theme=theme2)
 {
     
     const step = 1/maxIts;
     var index = 0;
     for(var clr = 1; clr < theme.colors.length; clr++)
     {
-        const clr1 = theme.colors[clr - 1];
-        const clr2 = theme.colors[clr];
-        var dif = (clr2.pos - clr1.pos)/step;
-        const rStep = (clr2.col[0] - clr1.col[0])/dif;
-        const gStep = (clr2.col[1] - clr1.col[1])/dif;
-        const bStep = (clr2.col[2] - clr1.col[2])/dif;
-        var tmpClr = [clr1.col[0], clr1.col[1], clr1.col[2]];
-        for(var start = clr1.pos; start < clr2.pos; start += step)
+        
+        if(scale==='linear')
         {
-            paletteBuffer[index++] = tmpClr[0];
-            paletteBuffer[index++] = tmpClr[1];
-            paletteBuffer[index++] = tmpClr[2];
-            tmpClr[0] += rStep;
-            tmpClr[1] += gStep;
-            tmpClr[2] += bStep;
+            const clr1 = theme.colors[clr - 1];
+            const clr2 = theme.colors[clr];
+            var dif = (clr2.pos - clr1.pos)/step;
+            const rStep = (clr2.col[0] - clr1.col[0])/dif;
+            const gStep = (clr2.col[1] - clr1.col[1])/dif;
+            const bStep = (clr2.col[2] - clr1.col[2])/dif;
+            var tmpClr = [clr1.col[0], clr1.col[1], clr1.col[2]];
+            for(var start = clr1.pos; start < clr2.pos; start += step)
+            {
+                paletteBuffer[index++] = tmpClr[0];
+                paletteBuffer[index++] = tmpClr[1];
+                paletteBuffer[index++] = tmpClr[2];
+                tmpClr[0] += rStep;
+                tmpClr[1] += gStep;
+                tmpClr[2] += bStep;
+            }
+        }
+        else if(scale==='log'){
+
+        }
+        else if(scale==='continuous')
+        {
+
         }
     }
 }

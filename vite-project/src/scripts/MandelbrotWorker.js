@@ -1,57 +1,5 @@
-function simplePink(its, maxIts)
-{
-    if(its==maxIts) return [0,0,0];
-    
-    var div = its/maxIts;//Math.log(its)/Math.log(maxIts);
-    //var div2 = Math.abs(div - .5)
-    var color = [255*div,80*div, 200*div];
-    //if(its > maxIts*.5)
-    //{
-    //    color = [255*div,80*div, 200*div]
-    //}
-    return color;
-}
-function logPink(its, maxIts)
-{
-    if(its==maxIts) return [0,0,0];
-    
-    var div = Math.log(its)/Math.log(maxIts);
-    //var div2 = Math.abs(div - .5)
-    var color = [255*div,80*div, 200*div];
-    //if(its > maxIts*.5)
-    //{
-    //    color = [255*div,80*div, 200*div]
-    //}
-    return color;
-}
-var colorArray = []
-colorArray.push(simplePink);
-colorArray.push(logPink);
-function getColor(index)
-{
-    return colorArray[index];
-}
-function colorTransition(colors, its, maxIts)  
-{
-    const percentage = its/maxIts;
-    const step = 100/colors.length;
-    var place = 0;
-    while(step*place < percentage)
-    {
-        place++;
-    }
-    const percentBetween = (percentage - (place - 1)*step) / step;
-    return {r:lerp(colors[place - 1].r, colors[place].r, percentBetween),
-            g:lerp(colors[place - 1].g, colors[place].g, percentBetween),
-            b:lerp(colors[place - 1].b, colors[place].b, percentBetween)}
 
-}
-function lerp(x, y, n)
-{
-    //get difference
-    return x + (y - x)*n
-}
-function getIterations(coor, maxIts)
+function getIterations(x, y, maxIts)
 {
     var its = 0;
     var zx = 0;
@@ -61,8 +9,8 @@ function getIterations(coor, maxIts)
     var zy2 = 0;
     while(its < maxIts && (zx2 + zy2 < 4))
     {
-        xtemp = zx2 - zy2 + coor.x;
-        zy = 2*zx*zy + coor.y;
+        xtemp = zx2 - zy2 + x;
+        zy = 2*zx*zy + y;
         zx = xtemp;
         zx2 = zx*zx;
         zy2 = zy*zy;
@@ -71,62 +19,45 @@ function getIterations(coor, maxIts)
 
     return its;
 }
-//function getColor(its, maxIts)
-//{
-//    //just grayscale for now
-//    if(its==maxIts) return [0,0,0];
-//    
-//    var div = its/maxIts;//Math.log(its)/Math.log(maxIts);
-//    //var div2 = Math.abs(div - .5)
-//    var color = [255*div,80*div, 200*div];
-//    //if(its > maxIts*.5)
-//    //{
-//    //    color = [255*div,80*div, 200*div]
-//    //}
-//    return color;
-//}
-function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=1, colorFunc=simplePink, buffer)
+
+function generateMandelbrot(topLeftCorner, width, height, res, maxIts=1000, samplesPerPixel=1, palette, buffer)
 {
-    //const topLeftCorner = {x: center.x - (width/2)*res, y: center.y + (height/2)*res};
-    //const buffer = new Uint8ClampedArray(width * height * 4);
-    const arr = [{r:255,g:0,b:0}, {r:0,g:0,b:255}]
+
     for(var i = 0; i < height; i++)
     {
-        var offset_i = i*width*4; //Precompute here doesn't speed up anything, compiler already does this. 
+        var offset_i = i*width*4; //Precompute here doesn't speed up anything, compiler already does this.
+        var y = topLeftCorner.y-(i*res);
+        var offset_j = -4;
+        var j_res = -res;
         for(var j = 0; j < width; j++)
         {
             var its = 0;
-             for(var k = 0; k < samplesPerPixel; k++)
+            j_res+=res;
+            var x = topLeftCorner.x+(j_res);
+            for(var k = 0; k < samplesPerPixel; k++)
             {
                 var inc = (res*k)/samplesPerPixel;
-                its+=getIterations({x:topLeftCorner.x+(j*res)+inc,y:topLeftCorner.y-(i*res)+inc}, maxIts)
+                its+=getIterations(x+inc, y+inc, maxIts)
                 
             }
-            var clr = colorFunc((its/samplesPerPixel), maxIts);
-            buffer[(offset_i)+(j*4)] = clr[0];
-            buffer[(offset_i)+(j*4)+1] = clr[1];
-            buffer[(offset_i)+(j*4)+2] = clr[2];
-            buffer[(offset_i)+(j*4)+3] = 255;
+            offset_j += 4;
+            var offset = offset_i + offset_j;
+            var clrIndex = Math.round((its/samplesPerPixel)*3);//func((its/samplesPerPixel), maxIts);
+            buffer[offset] = palette[clrIndex];
+            buffer[offset+1] = palette[clrIndex+1];
+            buffer[offset+2] = palette[clrIndex+2];
+            buffer[offset+3] = 255;
         }
     }
-
-    return buffer;
 }
-
-self.addEventListener('message', function(e) {
+var hasBuffer = false;
+var buffer = null;
+self.addEventListener('message', async function(e) {
     const props = e.data.props;
-    var buffer = new Uint8ClampedArray(e.data.buffer);
-    //var corner = {x:props.topLeftCoor.x + ((props.resolution*props.width) * (e.data.id/e.data.totalWorkers)), y:props.topLeftCoor.y};
-    generateMandelbrot(props.topLeftCoor,props.width,props.height,props.resolution, props.iterations, props.sampleNo, colorArray[0], buffer);
+    const buffer = new Uint8ClampedArray(e.data.buffer);
+    var palette = new Uint8ClampedArray(e.data.palette);
+    generateMandelbrot(props.topLeftCoor,props.width,props.height,props.resolution, props.iterations, props.sampleNo, palette, buffer);
     
-    self.postMessage({id:e.data.id})//,[buffer.buffer]);
+    self.postMessage({id:e.data.id, buffer:buffer});
     
     }, false);
-//onmessage = function (e)
-//{
-//    //debugger;
-//    //var corner = {x:props.topLeftCoor.x + (props.resolution * (props.width/e.i)), y:props.topLeftCoor.y};
-//    //console.log(corner, props, e.i);
-//    //var buf = generateMandelbrot(corner,props.width/e.i,props.height,props.resolution, props.iterations, props.samples)
-//    this.postMessage({workerNum:e.i});
-//}

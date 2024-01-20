@@ -20,7 +20,7 @@ export interface workerProp
     resolution:number
 }
 
-export function spawnMandelbrotWorkers(props:workerProp, workerNum: number, context:React.MutableRefObject<CanvasRenderingContext2D>, workerArray:Array<workerBufferPair>)
+export function spawnMandelbrotWorkers(props:workerProp, workerNum: number, context:React.MutableRefObject<CanvasRenderingContext2D>, workerArray:Array<workerBufferPair>, palette:SharedArrayBuffer)
 {
     var workersRunning = 0;
     //var workerArray:Array<Worker> = []
@@ -28,11 +28,9 @@ export function spawnMandelbrotWorkers(props:workerProp, workerNum: number, cont
     for(var i = 0; i < workerNum; i++)
     {
         var wProp = JSON.parse(JSON.stringify(props));
-        //var worker = new Worker("../src/scripts/MandelbrotWorker.js", {type: 'module'});
-        //var buffer = new Uint8ClampedArray((props.width * props.height * 4) / workerNum);
+ 
         workerArray[i].worker.addEventListener('message', function(e) {
-            //setData(context,new Uint8ClampedArray(e.data.imageData), workerArray[e.data.id].width, props.height,workerArray[e.data.id].xcoor,0);
-            //workerArray[e.data.id].terminate();
+            
             var idata = context.current.createImageData(workerArray[e.data.id].width, props.height);
             var data = new Uint8ClampedArray(workerArray[e.data.id].buffer);
             idata.data.set(data);
@@ -46,10 +44,10 @@ export function spawnMandelbrotWorkers(props:workerProp, workerNum: number, cont
             workerArray[i].worker.onerror = (e) => { 
             console.log(e.message)
         }
-        //workerArray.push(worker)
+        
         wProp.width = workerArray[i].width;
         wProp.topLeftCoor.x += (workerArray[i].xcoor*props.resolution);
-        workerArray[i].worker.postMessage({props:wProp, id:i, totalWorkers: workerNum, buffer:workerArray[i].buffer})
+        workerArray[i].worker.postMessage({props:wProp, id:i, totalWorkers: workerNum, buffer:workerArray[i].buffer, palette:palette})
         workersRunning++;
     }
     
@@ -59,9 +57,9 @@ export function spawnMandelbrotWorkers(props:workerProp, workerNum: number, cont
 
 export function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>, width:number, height:number)
 {
-    const fixedWidth = Math.round((width/workerNum)) - (workerNum*3);
-    const leftovers = width - fixedWidth * (workerNum - 1);
-    const pos = fixedWidth*(workerNum - 1);
+    const fixedWidth = Math.floor(width/workerNum)
+    const leftovers = width - fixedWidth*workerNum
+    //const pos = fixedWidth*(workerNum - 1);
 
     if(workerArray.length == 0)
     {
@@ -94,9 +92,9 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
         }
 
         workerArray[workerArray.length - 1].id = workerNum - 1;
-        workerArray[workerArray.length - 1].xcoor= pos;
-        workerArray[workerArray.length - 1].width= leftovers;
-        workerArray[workerArray.length - 1].buffer= new SharedArrayBuffer((leftovers * height * 4));
+        workerArray[workerArray.length - 1].xcoor= width - (fixedWidth + leftovers);
+        workerArray[workerArray.length - 1].width= fixedWidth + leftovers;
+        workerArray[workerArray.length - 1].buffer= new SharedArrayBuffer((fixedWidth+leftovers) * height * 4);
 
         //return workerArray;
     }
@@ -126,14 +124,13 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
             {
                 worker: new Worker("../src/scripts/MandelbrotWorker.js"),
                 id: workerNum - 1,
-                xcoor: pos,
-                width: leftovers,
-                buffer: new SharedArrayBuffer((leftovers * height * 4))
+                xcoor: width - (fixedWidth + leftovers),
+                width: fixedWidth + leftovers,
+                buffer: new SharedArrayBuffer((fixedWidth+leftovers) * height * 4)
             }
         )
         
     }
-
     
     return workerArray;
 }

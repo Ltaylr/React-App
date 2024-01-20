@@ -60,7 +60,7 @@ function Mandelbrot(props:mandelProp)
                 resolution:res
             }
 
-            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray);
+            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray, paletteBuffer);
         }
         
 
@@ -84,12 +84,20 @@ function Mandelbrot(props:mandelProp)
 
         setTopLeftCoordinate(c=>(newC));
         setRes(a => a*.80);
-        
-        
+        const newIts = Math.floor(its*1.05);
+        setIterations(i=>newIts)
+        var pbuf = paletteBuffer;
+        if(newIts*3 !== paletteBuffer.byteLength)
+        {   
+            pbuf = new SharedArrayBuffer(3*newIts);
+            fillPalette(newIts, new Uint8ClampedArray(pbuf));
+            setPaletteBuffer(pB=>pbuf);
+            
+        }
         if(workerNum === 1)
         {
             var start = performance.now();
-            const buf = generateMandelbrot(newC, props.width, props.height, res*.80, its, samples, paletteBuffer);
+            const buf = generateMandelbrot(newC, props.width, props.height, res*.80, newIts, samples, pbuf);
             setData(contextRef, buf, props.width, props.height, 0,0);
             console.log(`time for just main thread to finish render: ${performance.now() - start}`)
         }
@@ -98,11 +106,11 @@ function Mandelbrot(props:mandelProp)
                 topLeftCoor:newC,
                 width:props.width,
                 height:props.height,
-                iterations:its, 
+                iterations:newIts, 
                 sampleNo:samples,
                 resolution:res*.80
             }
-            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray);
+            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray,pbuf);
         }
     };
 
@@ -114,16 +122,16 @@ function Mandelbrot(props:mandelProp)
                 event.nativeEvent.offsetX, 
                 event.nativeEvent.offsetY,
                 res,
-                TopLeftCoordinate), TopLeftCoordinate, 1.15);
+                TopLeftCoordinate), TopLeftCoordinate, 1.30);
 
         setTopLeftCoordinate(c=>(newC));
-        setRes(a => a*1.15);
+        setRes(a => a*1.30);
         
         
         if(workerNum === 1)
         {
             var start = performance.now();
-            const buf = generateMandelbrot(newC, props.width, props.height, res*1.15, its, samples, paletteBuffer);
+            const buf = generateMandelbrot(newC, props.width, props.height, res*1.30, its, samples, paletteBuffer);
             setData(contextRef, buf, props.width, props.height, 0,0);
             console.log(`time for just main thread to finish render: ${performance.now() - start}`)
         }
@@ -136,7 +144,7 @@ function Mandelbrot(props:mandelProp)
                 sampleNo:samples,
                 resolution:res*1.15
             }
-            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray);
+            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray, paletteBuffer);
         }
     };
 
