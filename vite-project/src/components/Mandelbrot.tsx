@@ -20,12 +20,23 @@ function Mandelbrot(props:mandelProp)
     const [TopLeftCoordinate, setTopLeftCoordinate] = useState({x: -3, y: 2});
     const [res, setRes] = useState(2/(props.height/2));
     const [its, setIterations] = useState(props.iterations);
-    const [maxWorkers] = useState(24);
     const [samples, setSamples] = useState(props.sampleNo);
     const [workerNum, setWorkerNum] = useState(1);
     const [workerArray, setWorkerArray] = useState<workerBufferPair[]>([]);
     const [paletteBuffer, setPaletteBuffer] = useState<SharedArrayBuffer>(new SharedArrayBuffer(3*its));
-    //const [sharedBuffer] = useRef<SharedArrayBuffer>(new SharedArrayBuffer(props.width*props.height*4)); 
+    const wNumRef = useRef(workerNum);
+    const tLcoor = useRef(TopLeftCoordinate);
+    const resRef = useRef(res);
+    const itsRef = useRef(its);
+    const sampRef = useRef(samples);
+    const paletteRef = useRef(paletteBuffer);
+    wNumRef.current = workerNum;
+    tLcoor.current = TopLeftCoordinate;
+    resRef.current = res;
+    itsRef.current = its;
+    sampRef.current = samples;
+    paletteRef.current = paletteBuffer;
+
 
     const handleSubmit = (e:FormEvent) => {
         e.preventDefault()
@@ -37,41 +48,71 @@ function Mandelbrot(props:mandelProp)
             setPaletteBuffer(pB=>pbuf);
             
         }
-        if(workerNum === 1)
+
+        if(workerNum !== workerArray.length)
         {
-            var start = performance.now();
-            const buf = generateMandelbrot(TopLeftCoordinate, props.width, props.height, res, its, samples, pbuf);
-            setData(contextRef, buf, props.width, props.height, 0,0);
-            console.log(`time for just main thread to finish render: ${performance.now() - start}`)
+            
+            var newArr = buildWorkerArray(workerNum,workerArray,canvasRef.current?.width!, canvasRef.current?.height!);
+            setWorkerArray(arr=>newArr);
         }
-        else{
-            if(workerNum !== workerArray.length)
-            {
-                var newArr = buildWorkerArray(workerNum,workerArray,props.width, props.height)
-                setWorkerArray(arr=>newArr);
-            }
-
-            const wProp:workerProp = {
-                topLeftCoor:TopLeftCoordinate,
-                width:props.width,
-                height:props.height,
-                iterations:its, 
-                sampleNo:samples,
-                resolution:res
-            }
-
-            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray, paletteBuffer);
+        const wProp:workerProp = {
+            topLeftCoor:TopLeftCoordinate,
+            width:canvasRef.current?.width!,
+            height:canvasRef.current?.height!,
+            iterations:its, 
+            sampleNo:samples,
+            resolution:res
         }
+        spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray, paletteBuffer);
+        
         
 
     }
-    useEffect(() => {
-        fillPalette(its, new Uint8ClampedArray(paletteBuffer))
-        const buf = generateMandelbrot(TopLeftCoordinate, props.width, props.height, res,  props.iterations, samples, paletteBuffer);
-        setInitialData(canvasRef,contextRef,buf,0,0,props.width, props.height);
-        var arr = buildWorkerArray(workerNum, workerArray, props.width, props.height);
-        setWorkerArray(a=>arr);
+    var doit:number;
+    const handleResize = () =>
+    {
+        clearTimeout(doit);
+        doit = setTimeout(reDrawImage, 100);
 
+    }
+    const reDrawImage = () =>
+    {
+        const canvas = canvasRef.current!;
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        const width = canvasRef.current?.width!;
+        const height = canvasRef.current?.height!
+        var arr = buildWorkerArray(wNumRef.current, workerArray, width, height);
+        setWorkerArray(a=>arr);
+        const wProp:workerProp = {
+            topLeftCoor:tLcoor.current,
+            width:width,
+            height:height,
+            iterations:itsRef.current, 
+            sampleNo:sampRef.current,
+            resolution:resRef.current
+        }
+        spawnMandelbrotWorkers(wProp,wNumRef.current, contextRef, arr, paletteRef.current);
+    }
+    useEffect(() => {
+        const canvas = canvasRef.current!;
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        const width = canvasRef.current?.width!;
+        const height = canvasRef.current?.height!
+        fillPalette(its, new Uint8ClampedArray(paletteBuffer))
+        const buf = generateMandelbrot(TopLeftCoordinate, width, height, res,  props.iterations, samples, paletteBuffer);
+        setInitialData(canvasRef,contextRef,buf,0,0,width, height);
+        var arr = buildWorkerArray(workerNum, workerArray, width, height);
+        setWorkerArray(a=>arr);
+        window.addEventListener("resize", handleResize);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        }
     },[]);
     
     const clickHandle = (event:MouseEvent) => {
@@ -82,11 +123,21 @@ function Mandelbrot(props:mandelProp)
                 res,
                 TopLeftCoordinate), TopLeftCoordinate, .80);
 
-        setTopLeftCoordinate(c=>(newC));
+        setTopLeftCoordinate(c=>newC);
         setRes(a => a*.80);
         const newIts = Math.floor(its*1.05);
         setIterations(i=>newIts)
         var pbuf = paletteBuffer;
+        const width = canvasRef.current?.width!;
+        const height = canvasRef.current?.height!;
+        
+        if(workerNum !== workerArray.length)
+        {
+            
+            var newArr = buildWorkerArray(workerNum,workerArray,canvasRef.current?.width!, canvasRef.current?.height!);
+            setWorkerArray(arr=>newArr);
+        }
+
         if(newIts*3 !== paletteBuffer.byteLength)
         {   
             pbuf = new SharedArrayBuffer(3*newIts);
@@ -94,24 +145,17 @@ function Mandelbrot(props:mandelProp)
             setPaletteBuffer(pB=>pbuf);
             
         }
-        if(workerNum === 1)
-        {
-            var start = performance.now();
-            const buf = generateMandelbrot(newC, props.width, props.height, res*.80, newIts, samples, pbuf);
-            setData(contextRef, buf, props.width, props.height, 0,0);
-            console.log(`time for just main thread to finish render: ${performance.now() - start}`)
+
+        const wProp:workerProp = {
+            topLeftCoor:newC,
+            width:width,
+            height:height,
+            iterations:newIts, 
+            sampleNo:samples,
+            resolution:res*.80
         }
-        else{
-            const wProp:workerProp = {
-                topLeftCoor:newC,
-                width:props.width,
-                height:props.height,
-                iterations:newIts, 
-                sampleNo:samples,
-                resolution:res*.80
-            }
-            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray,pbuf);
-        }
+        spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray,pbuf);
+
     };
 
     const rightClickHandle = (event:MouseEvent) => {
@@ -126,59 +170,62 @@ function Mandelbrot(props:mandelProp)
 
         setTopLeftCoordinate(c=>(newC));
         setRes(a => a*1.30);
+        const width = canvasRef.current?.width!;
+        const height = canvasRef.current?.height!;
         
-        
-        if(workerNum === 1)
+        if(workerNum !== workerArray.length)
         {
-            var start = performance.now();
-            const buf = generateMandelbrot(newC, props.width, props.height, res*1.30, its, samples, paletteBuffer);
-            setData(contextRef, buf, props.width, props.height, 0,0);
-            console.log(`time for just main thread to finish render: ${performance.now() - start}`)
+            
+            var newArr = buildWorkerArray(workerNum,workerArray,canvasRef.current?.width!, canvasRef.current?.height!);
+            setWorkerArray(arr=>newArr);
         }
-        else{
-            const wProp:workerProp = {
-                topLeftCoor:newC,
-                width:props.width,
-                height:props.height,
-                iterations:its, 
-                sampleNo:samples,
-                resolution:res*1.15
-            }
-            spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray, paletteBuffer);
+        
+        const wProp:workerProp = {
+            topLeftCoor:newC,
+            width:width,
+            height:height,
+            iterations:its, 
+            sampleNo:samples,
+            resolution:res*1.30
         }
+        spawnMandelbrotWorkers(wProp,workerNum, contextRef, workerArray, paletteBuffer);
+        
     };
 
     return <>
             
             <div className="mand-container">
-                <div className="mand-item">
+                <div className="mand-item" id="mand-canvas">
                 <canvas 
                     ref={canvasRef} 
-                    width={props.width} 
-                    height={props.height}
                     onClick={clickHandle}
                     onContextMenu={rightClickHandle}
                 />
                 </div>
                 <div className="mand-item" id='mand-submit'>
-                    <h4>
-                    Pixel Resolution: {res.toString()} <br></br> Top Left Corner: ({TopLeftCoordinate.x},{TopLeftCoordinate.y})
+                    <h4 id='coor'>
+                    Pixel Resolution:<br></br> {res.toString()} <br></br> Top Left Corner: <br></br>({TopLeftCoordinate.x}, {TopLeftCoordinate.y})
                     </h4>
                     <form onSubmit={handleSubmit}>
 
                             <div>
-                                Iterations: 
-                                <input type="text" value={its} onChange={(e) => setIterations(its => Number(e.target.value))}/>
+                                Iterations: {its}
+                                <div>
+                                    <input type="range" min={50} max={12000} step={100} value={its} onChange={(e) => setIterations(its => Number(e.target.value))}/>
+                                </div>
+                            </div>
+                            <div>
+                                Samples: {samples}
+                                <div>
+                                    <input type="range" min={1} max={12} value={samples} onChange={(e) => setSamples(samples => Number(e.target.value))}/>
+                                </div>
 
                             </div>
                             <div>
-                                Samples: 
-                                <input type="text" value={samples} onChange={(e) => setSamples(samples => Number(e.target.value))}/>
-
-                            </div>
-                            <div>
-                                Threads: 
-                                <input type="text" value={workerNum} onChange={(e) => setWorkerNum(workerNum => Number(e.target.value))}/>
+                                Threads: {workerNum}
+                                <div>
+                                    <input type="range" value={workerNum} min={1} max={100} onChange={(e) => setWorkerNum(workerNum => Number(e.target.value))}/>
+                                </div>
                             </div>
                             <button type="submit">submit</button>
                     </form>

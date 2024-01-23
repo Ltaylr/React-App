@@ -6,7 +6,8 @@ export interface workerBufferPair
     id: number,
     xcoor: number,
     width: number,
-    buffer: SharedArrayBuffer
+    buffer: SharedArrayBuffer, 
+    height: number
 
 }
 
@@ -31,7 +32,7 @@ export function spawnMandelbrotWorkers(props:workerProp, workerNum: number, cont
  
         workerArray[i].worker.addEventListener('message', function(e) {
             
-            var idata = context.current.createImageData(workerArray[e.data.id].width, props.height);
+            var idata = context.current.createImageData(workerArray[e.data.id].width, workerArray[e.data.id].height);
             var data = new Uint8ClampedArray(workerArray[e.data.id].buffer);
             idata.data.set(data);
             context.current.putImageData(idata, workerArray[e.data.id].xcoor, 0);
@@ -71,7 +72,8 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
                     id: i,
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
-                    buffer: new SharedArrayBuffer(fixedWidth * height * 4)
+                    buffer: new SharedArrayBuffer(fixedWidth * height * 4),
+                    height: height
                 }
             )
             
@@ -86,15 +88,17 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
         workerArray = workerArray.slice(0, workerNum);
         for(var i = 0; i < workerArray.length - 1; i++)
         {
-            workerArray[i].buffer = new SharedArrayBuffer(fixedWidth * height * 4)
-            workerArray[i].xcoor = fixedWidth*i,
-            workerArray[i].width = fixedWidth
+            workerArray[i].buffer = new SharedArrayBuffer(fixedWidth * height * 4);
+            workerArray[i].xcoor = fixedWidth*i;
+            workerArray[i].width = fixedWidth;
+            workerArray[i].height = height;
         }
 
         workerArray[workerArray.length - 1].id = workerNum - 1;
         workerArray[workerArray.length - 1].xcoor= width - (fixedWidth + leftovers);
         workerArray[workerArray.length - 1].width= fixedWidth + leftovers;
         workerArray[workerArray.length - 1].buffer= new SharedArrayBuffer((fixedWidth+leftovers) * height * 4);
+        workerArray[workerArray.length - 1].height= height;
 
         //return workerArray;
     }
@@ -105,6 +109,7 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
             workerArray[i].buffer = workerArray[i].buffer.slice(0,(fixedWidth * height * 4))
             workerArray[i].xcoor = fixedWidth*i
             workerArray[i].width = fixedWidth
+            workerArray[i].height = height
         }
         for(var i = workerArray.length; i < workerNum - 1; i++)
         {
@@ -115,7 +120,8 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
                     id: i,
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
-                    buffer: new SharedArrayBuffer((fixedWidth * height * 4))
+                    buffer: new SharedArrayBuffer((fixedWidth * height * 4)),
+                    height: height
                 }
             )
         }
@@ -126,10 +132,26 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
                 id: workerNum - 1,
                 xcoor: width - (fixedWidth + leftovers),
                 width: fixedWidth + leftovers,
-                buffer: new SharedArrayBuffer((fixedWidth+leftovers) * height * 4)
+                buffer: new SharedArrayBuffer((fixedWidth+leftovers) * height * 4),
+                height: height
             }
         )
         
+    }
+    else{
+        for(var i = 0; i < workerNum - 1; i++)
+        {
+            
+            workerArray[i].xcoor= fixedWidth*i;
+            workerArray[i].width= fixedWidth;
+            workerArray[i].buffer= new SharedArrayBuffer((fixedWidth) * height * 4);
+            workerArray[i].height = height
+        }
+        
+        workerArray[workerArray.length - 1].xcoor= width - (fixedWidth + leftovers);
+        workerArray[workerArray.length - 1].width= fixedWidth + leftovers;
+        workerArray[workerArray.length - 1].buffer= new SharedArrayBuffer((fixedWidth+leftovers) * height * 4);
+        workerArray[workerArray.length - 1].height = height;
     }
     
     return workerArray;
