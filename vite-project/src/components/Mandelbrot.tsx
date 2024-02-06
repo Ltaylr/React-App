@@ -15,7 +15,8 @@ function Mandelbrot(props:mandelProp)
     const [samples, setSamples] = useState(props.sampleNo);
     const [workerNum, setWorkerNum] = useState(24);
     const [workerArray, setWorkerArray] = useState<workerBufferPair[]>([]);
-
+    const [zoomIn, setZoomIn] = useState<number>(2);
+    const [zoomOut, setZoomOut] = useState<number>(3);
     const wNumRef = useRef(workerNum);
     const tLcoor = useRef(TopLeftCoordinate);
     const resRef = useRef(res);
@@ -80,8 +81,8 @@ function Mandelbrot(props:mandelProp)
                 <div className="mand-item" id="mand-canvas">
                 <canvas 
                     ref={canvasRef} 
-                    onClick={(e) =>{clickHandle(e,resRef.current, TopLeftCoordinate,setTopLeftCoordinate,setRes,setWorkerArray,canvasRef,contextRef,workerNum,workerArray,getWorkerProp(.80),theme.current,.80)}}
-                    onContextMenu={(e) =>{clickHandle(e,resRef.current, TopLeftCoordinate,setTopLeftCoordinate,setRes,setWorkerArray,canvasRef,contextRef,workerNum,workerArray,getWorkerProp(1.30),theme.current,1.30)}}
+                    onClick={(e) =>{clickHandle(e,resRef.current, TopLeftCoordinate,setTopLeftCoordinate,setRes,setWorkerArray,canvasRef,contextRef,workerNum,workerArray,getWorkerProp(1.1 - zoomIn*.1),theme.current,1.1 - zoomIn*.1)}}
+                    onContextMenu={(e) =>{clickHandle(e,resRef.current, TopLeftCoordinate,setTopLeftCoordinate,setRes,setWorkerArray,canvasRef,contextRef,workerNum,workerArray,getWorkerProp(1 + zoomOut*.1),theme.current,1 + zoomOut*.1)}}
                     onMouseDown={mouseDownHandle}
                     onMouseMove={mouseMoveHandle}
                     onMouseUp={mouseUpHandle}
@@ -111,6 +112,18 @@ function Mandelbrot(props:mandelProp)
                                 Threads: {workerNum}
                                 <div>
                                     <input type="range" value={workerNum} min={1} max={100} onChange={(e) => setWorkerNum(workerNum => Number(e.target.value))}/>
+                                </div>
+                            </div>
+                            <div>
+                                Zoom In Level: {zoomIn}
+                                <div>
+                                    <input type="range" value={zoomIn} min={1} max={10} onChange={(e) => setZoomIn(zoomIn => Number(e.target.value))}/>
+                                </div>
+                            </div>
+                            <div>
+                                Zoom Out Level: {zoomOut}
+                                <div>
+                                    <input type="range" value={zoomOut} min={1} max={10} onChange={(e) => setZoomOut(zoomOut => Number(e.target.value))}/>
                                 </div>
                             </div>
                             <button type="submit">Submit</button>
