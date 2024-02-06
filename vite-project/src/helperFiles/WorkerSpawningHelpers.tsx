@@ -1,5 +1,5 @@
 import { coordinatePair } from "./MandelbrotHelpers";
-
+import {theme} from "./ColorFuncs"
 export interface workerBufferPair
 {
     worker: Worker,
@@ -21,11 +21,12 @@ export interface workerProp
     resolution:number
 }
 
-export function spawnMandelbrotWorkers(props:workerProp, workerNum: number, context:React.MutableRefObject<CanvasRenderingContext2D>, workerArray:Array<workerBufferPair>, palette:SharedArrayBuffer)
+export function spawnMandelbrotWorkers(props:workerProp, context:React.MutableRefObject<CanvasRenderingContext2D>, workerArray:Array<workerBufferPair>, palette:theme)
 {
     var workersRunning = 0;
     //var workerArray:Array<Worker> = []
     var start = performance.now();
+    const workerNum = workerArray.length;
     for(var i = 0; i < workerNum; i++)
     {
         var wProp = JSON.parse(JSON.stringify(props));
@@ -42,13 +43,13 @@ export function spawnMandelbrotWorkers(props:workerProp, workerNum: number, cont
                 console.log(`time for ${workerNum} webworkers to finish: ${performance.now() - start}`);
             }
             }, false);
-            workerArray[i].worker.onerror = (e) => { 
-            console.log(e.message)
+        workerArray[i].worker.onerror = (e) => { 
+        console.log(e.message)
         }
         
         wProp.width = workerArray[i].width;
         wProp.topLeftCoor.x += (workerArray[i].xcoor*props.resolution);
-        workerArray[i].worker.postMessage({props:wProp, id:i, totalWorkers: workerNum, buffer:workerArray[i].buffer, palette:palette})
+        workerArray[i].worker.postMessage({props:wProp, id:i, totalWorkers: workerNum, buffer:workerArray[i].buffer, theme:palette})
         workersRunning++;
     }
     

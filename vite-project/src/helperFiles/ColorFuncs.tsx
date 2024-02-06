@@ -2,36 +2,43 @@ interface colorPos {
     pos:number,
     col:Array<number>
 }
-interface theme{
+export interface theme{
     colors: Array<colorPos>;
 }
-var theme1:theme = 
+export var pinkAndBlue:theme = 
 {
     colors:
     [{pos: 0.0, col:[0,0,0]},
     {pos: 0.2, col:[80,10,80]},
     {pos: 0.5, col:[180,125,90]},
     {pos: 0.8, col:[255,125,255]},
-    {pos: 0.95,col:[20,20,255]},
+    {pos: 0.90,col:[20,20,140]},
     {pos: 1.0, col:[0,0,0]}]
 
 }
-var theme2:theme = 
+export var theme2:theme = 
 {
     colors:
     [{pos: 0.0, col:[0,0,0]},
-    {pos: 0.5, col:[255,80,200]},
+    {pos: 0.3, col:[255,80,200]},
     //{pos: 0.8, col:[255,100,230]},
-    {pos: 0.97, col:[30,10,120]},
+    {pos: 0.6, col:[30,10,120]},
+    {pos: 0.9, col:[120,120,200]},
     {pos: 1.0, col:[0,0,0]}]
 
 }
-const themeArray:Array<theme> = new Array<theme>(theme1);
+export var blackAndWhite: theme = {
+    colors:
+    [{pos: 0.0, col:[0,0,0]},
+    {pos: 0.3, col:[255,255,255]},
+    {pos: 1.0, col:[0,0,0]}]
+}
+const themeArray:Array<theme> = new Array<theme>(pinkAndBlue);
 
-export function fillPalette(maxIts:number, paletteBuffer: Uint8ClampedArray, scale='linear', theme:theme=theme2)
+export function fillPalette(numberOfHues:number, paletteBuffer: Uint8ClampedArray, scale='linear', theme:theme=blackAndWhite)
 {
     
-    const step = 1/maxIts;
+    const step = 1/numberOfHues;
     var index = 0;
     for(var clr = 1; clr < theme.colors.length; clr++)
     {
