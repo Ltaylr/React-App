@@ -27,7 +27,7 @@ export function spawnMandelbrotWorkers(props:workerProp, context:React.MutableRe
 {
     var workersRunning = 0;
     //var workerArray:Array<Worker> = []
-    var start = performance.now();
+    //var start = performance.now();
     const workerNum = workerArray.length;
     for(var i = 0; i < workerNum; i++)
     {
@@ -43,9 +43,6 @@ export function spawnMandelbrotWorkers(props:workerProp, context:React.MutableRe
         workerArray[i].worker.postMessage({props:wProp, id:i, totalWorkers: workerNum, buffer:workerArray[i].buffer, theme:palette})
         workersRunning++;
     }
-    
-    
-
 }
 
 export function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>, width:number, height:number, contextRef:MutableRefObject<CanvasRenderingContext2D>)

@@ -1,7 +1,7 @@
 import {useRef, useEffect, useState} from 'react';
 import { spawnMandelbrotWorkers, buildWorkerArray, workerProp, workerBufferPair } from '../helperFiles/WorkerSpawningHelpers';
 import { mandelProp } from '../helperFiles/MandelbrotHelpers'
-import { blackAndWhite, fillPalette, pinkAndBlue } from '../helperFiles/ColorFuncs';
+import { themeArray, pinkAndBlue } from '../helperFiles/ColorFuncs';
 import { handleSubmitForm, resetCanvas, reDrawImage, mouseDownHandle,mouseMoveHandle,mouseUpHandle, resetImage, clickHandle} from './handlers/MandlebrotHandlers';
 
 function Mandelbrot(props:mandelProp)
@@ -15,8 +15,9 @@ function Mandelbrot(props:mandelProp)
     const [samples, setSamples] = useState(props.sampleNo);
     const [workerNum, setWorkerNum] = useState(24);
     const [workerArray, setWorkerArray] = useState<workerBufferPair[]>([]);
-    const [zoomIn, setZoomIn] = useState<number>(2);
+    const [zoomIn, setZoomIn] = useState<number>(7);
     const [zoomOut, setZoomOut] = useState<number>(3);
+    const [curTheme, setCurTheme] = useState<number>(1);
     const wNumRef = useRef(workerNum);
     const tLcoor = useRef(TopLeftCoordinate);
     const resRef = useRef(res);
@@ -50,9 +51,18 @@ function Mandelbrot(props:mandelProp)
     const handleResize = () =>
     {
         clearTimeout(doit);
-        doit = setTimeout(reDraw, 100);
+        doit = setTimeout(reDraw, 200);
     }
-    
+    const handleScroll = () =>
+    {
+        clearTimeout(doit);
+        doit = setTimeout(spawnW, 200);
+    }
+    const spawnW = () => 
+    {
+        spawnMandelbrotWorkers(getWorkerProp(), contextRef,workerArray, theme.current)
+    }
+
     useEffect(() => {
         resetCanvas(canvasRef);
         const width = canvasRef.current?.width!;
@@ -86,6 +96,13 @@ function Mandelbrot(props:mandelProp)
                     onMouseDown={mouseDownHandle}
                     onMouseMove={mouseMoveHandle}
                     onMouseUp={mouseUpHandle}
+                    onWheel={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIterations(itsRef.current+Math.round(e.deltaY*-0.05));
+                        handleScroll();
+                        return false;
+                    }}
                 />
                 </div>
                 <div className="mand-item" id='mand-submit'>
@@ -99,31 +116,37 @@ function Mandelbrot(props:mandelProp)
                             <div>
                                 Iterations: {its}
                                 <div>
-                                    <input type="range" min={50} max={5000} step={50} value={its} onChange={(e) => setIterations(its => Number(e.target.value))}/>
+                                    <input type="text"  value={its} onChange={(e) => setIterations(Number(e.target.value))}/>
                                 </div>
                             </div>
                             <div>
                                 Samples: {samples}
                                 <div>
-                                    <input type="range" min={1} max={12} value={samples} onChange={(e) => setSamples(samples => Number(e.target.value))}/>
+                                    <input type="range" min={1} max={12} value={samples} onChange={(e) => setSamples(Number(e.target.value))}/>
                                 </div>
                             </div>
                             <div>
                                 Threads: {workerNum}
                                 <div>
-                                    <input type="range" value={workerNum} min={1} max={100} onChange={(e) => setWorkerNum(workerNum => Number(e.target.value))}/>
+                                    <input type="range" value={workerNum} min={1} max={100} onChange={(e) => setWorkerNum(Number(e.target.value))}/>
                                 </div>
                             </div>
                             <div>
                                 Zoom In Level: {zoomIn}
                                 <div>
-                                    <input type="range" value={zoomIn} min={1} max={10} onChange={(e) => setZoomIn(zoomIn => Number(e.target.value))}/>
+                                    <input type="range" value={zoomIn} min={1} max={10} onChange={(e) => setZoomIn(Number(e.target.value))}/>
                                 </div>
                             </div>
                             <div>
                                 Zoom Out Level: {zoomOut}
                                 <div>
-                                    <input type="range" value={zoomOut} min={1} max={10} onChange={(e) => setZoomOut(zoomOut => Number(e.target.value))}/>
+                                    <input type="range" value={zoomOut} min={1} max={10} onChange={(e) => setZoomOut(Number(e.target.value))}/>
+                                </div>
+                            </div>
+                            <div>
+                                Theme: {theme.current.name}
+                                <div>
+                                    <input type="range" value={curTheme + 1} min={1} max={themeArray.length} onChange={(e) => {setCurTheme(Number(e.target.value) - 1);theme.current = themeArray[Number(e.target.value) - 1]}}/>
                                 </div>
                             </div>
                             <button type="submit">Submit</button>

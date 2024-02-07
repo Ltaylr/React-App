@@ -1,7 +1,7 @@
 import { MouseEvent, FormEvent, MutableRefObject } from 'react';
 import { spawnMandelbrotWorkers, buildWorkerArray, workerProp, workerBufferPair } from '../../helperFiles/WorkerSpawningHelpers';
 import {getClickCoordinate, getTopLeftCoordinate, mandelProp, coordinatePair} from '../../helperFiles/MandelbrotHelpers'
-import { blackAndWhite, fillPalette, pinkAndBlue, theme } from '../../helperFiles/ColorFuncs';
+import { theme } from '../../helperFiles/ColorFuncs';
 
 export function handleSubmitForm(e:FormEvent,
      workerNum:number, 
@@ -17,7 +17,7 @@ export function handleSubmitForm(e:FormEvent,
     if(workerNum !== workerArray.length)
     {
         var newArr = buildWorkerArray(workerNum,workerArray,canvasWidth, canvasHeight,contextRef);
-        setWorkerArray(arr=>newArr);
+        setWorkerArray(newArr);
     }
     spawnMandelbrotWorkers(wProp,contextRef, workerArray, theme.current);
 }
@@ -42,7 +42,7 @@ export function reDrawImage(canvasRef:React.RefObject<HTMLCanvasElement>,
     const height = canvasRef.current?.height!;
     var arr = buildWorkerArray(currentWorkerNum, workerArray, width, height,contextRef);
     workerProp.height = height;
-    setWorkerArray(a=>arr);
+    setWorkerArray(arr);
     spawnMandelbrotWorkers(workerProp, contextRef, arr, theme);
 }
 export function resetImage(e:FormEvent,
@@ -56,11 +56,12 @@ export function resetImage(e:FormEvent,
     theme:theme)
     {
         e.preventDefault()
-        setIterations(i=>180);
-        setTopLeftCoordinate(c=>({x:-3,y:2}));
-        setRes(r=>2/(height/2))
         const width = canvasRef.current?.width!;
         const height = canvasRef.current?.height!
+        setIterations(180);
+        setTopLeftCoordinate(({x:-3,y:2}));
+        setRes(2/(height/2))
+        
         const wProp:workerProp = {
             topLeftCoor:{x:-3,y:2},
             width:width,
@@ -70,7 +71,7 @@ export function resetImage(e:FormEvent,
             resolution:(2/(height/2))
         }
         var arr = buildWorkerArray(workerArray.length, workerArray, width, height,contextRef);
-        setWorkerArray(a=>arr);
+        setWorkerArray(arr);
         spawnMandelbrotWorkers(wProp,contextRef, workerArray,theme);
 }
 export function clickHandle(event:MouseEvent, 
@@ -96,14 +97,14 @@ export function clickHandle(event:MouseEvent,
             res,
             TopLeftCoordinate), TopLeftCoordinate, zoom);
 
-    setTopLeftCoordinate(c=>newC);
-    setRes(a => a*zoom);
+    setTopLeftCoordinate(newC);
+    setRes(res*zoom);
     
     if(workerNum !== workerArray.length)
     {
         
         var newArr = buildWorkerArray(workerNum,workerArray,canvasRef.current?.width!, canvasRef.current?.height!,contextRef);
-        setWorkerArray(arr=>newArr);
+        setWorkerArray(newArr);
     }
     wProp.topLeftCoor = newC;
 

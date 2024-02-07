@@ -3,10 +3,12 @@ interface colorPos {
     col:Array<number>
 }
 export interface theme{
+    name: string,
     colors: Array<colorPos>;
 }
 export var pinkAndBlue:theme = 
 {
+    name:"Royal Purple",
     colors:
     [{pos: 0.0, col:[0,0,0]},
     {pos: 0.2, col:[80,10,80]},
@@ -16,24 +18,49 @@ export var pinkAndBlue:theme =
     {pos: 1.0, col:[0,0,0]}]
 
 }
-export var theme2:theme = 
-{
-    colors:
-    [{pos: 0.0, col:[0,0,0]},
-    {pos: 0.3, col:[255,80,200]},
-    //{pos: 0.8, col:[255,100,230]},
-    {pos: 0.6, col:[30,10,120]},
-    {pos: 0.9, col:[120,120,200]},
-    {pos: 1.0, col:[0,0,0]}]
-
-}
+//export var theme2:theme = 
+//{
+//    colors:
+//    [{pos: 0.0, col:[0,0,0]},
+//    {pos: 0.3, col:[255,80,200]},
+//    //{pos: 0.8, col:[255,100,230]},
+//    {pos: 0.6, col:[30,10,120]},
+//    {pos: 0.9, col:[120,120,200]},
+//    {pos: 1.0, col:[0,0,0]}]
+//
+//}
 export var blackAndWhite: theme = {
+    name:"Grayscale",
     colors:
     [{pos: 0.0, col:[0,0,0]},
     {pos: 0.3, col:[255,255,255]},
     {pos: 1.0, col:[0,0,0]}]
 }
-const themeArray:Array<theme> = new Array<theme>(pinkAndBlue);
+export var greenCascade: theme = {
+    name:"Green Cascade",
+    colors:
+    [{pos: 0.0, col:[0,0,0]},
+    {pos: 0.50, col:[0,255,80]},
+    {pos: 0.75, col:[0,0,80]},
+    {pos: 1.0, col:[0,0,0]}]
+}
+export var rainbow: theme = {
+    name:"Rainbow",
+    colors:
+    [{pos: 0.0, col:[0,0,0]},
+    {pos: 0.20, col:[255,0,0]},
+    {pos: 0.30, col:[255,0,255]},
+    {pos: 0.40, col:[0,0,255]},
+    {pos: 0.50, col:[0,255,255]},
+    {pos: 0.60, col:[0,255,0]},
+    {pos: 0.70, col:[255,255,0]},
+    {pos: 1.0, col:[0,0,0]}]
+}
+export var themeArray:Array<theme> = [];
+themeArray.push(blackAndWhite);
+themeArray.push(pinkAndBlue);
+themeArray.push(greenCascade);
+themeArray.push(rainbow);
 
 export function fillPalette(numberOfHues:number, paletteBuffer: Uint8ClampedArray, scale='linear', theme:theme=blackAndWhite)
 {
