@@ -58,7 +58,7 @@ function Mandelbrot(props:mandelProp)
         const width = canvasRef.current?.width!;
         const height = canvasRef.current?.height!;
         contextRef.current = canvasRef.current!.getContext("2d")!;
-        var arr = buildWorkerArray(workerNum, workerArray, width, height);
+        var arr = buildWorkerArray(workerNum, workerArray, width, height,contextRef);
         setWorkerArray(a=>arr);
         const wProp:workerProp = {
             topLeftCoor:tLcoor.current,

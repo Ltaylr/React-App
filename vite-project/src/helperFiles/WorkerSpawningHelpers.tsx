@@ -1,5 +1,6 @@
 import { coordinatePair } from "./MandelbrotHelpers";
 import {theme} from "./ColorFuncs"
+import { MutableRefObject } from "react";
 export interface workerBufferPair
 {
     worker: Worker,
@@ -7,7 +8,8 @@ export interface workerBufferPair
     xcoor: number,
     width: number,
     buffer: SharedArrayBuffer, 
-    height: number
+    height: number,
+    imageData: ImageData
 
 }
 
@@ -31,18 +33,7 @@ export function spawnMandelbrotWorkers(props:workerProp, context:React.MutableRe
     {
         var wProp = JSON.parse(JSON.stringify(props));
  
-        workerArray[i].worker.addEventListener('message', function(e) {
-            
-            var idata = context.current.createImageData(workerArray[e.data.id].width, workerArray[e.data.id].height);
-            var data = new Uint8ClampedArray(workerArray[e.data.id].buffer);
-            idata.data.set(data);
-            context.current.putImageData(idata, workerArray[e.data.id].xcoor, 0);
-            workersRunning--;
-            if(workersRunning === 0)
-            {
-                console.log(`time for ${workerNum} webworkers to finish: ${performance.now() - start}`);
-            }
-            }, false);
+        
         workerArray[i].worker.onerror = (e) => { 
         console.log(e.message)
         }
@@ -57,11 +48,10 @@ export function spawnMandelbrotWorkers(props:workerProp, context:React.MutableRe
 
 }
 
-export function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>, width:number, height:number)
+export function buildWorkerArray(workerNum:number, workerArray:Array<workerBufferPair>, width:number, height:number, contextRef:MutableRefObject<CanvasRenderingContext2D>)
 {
     const fixedWidth = Math.floor(width/workerNum)
     const leftovers = width - fixedWidth*workerNum
-    //const pos = fixedWidth*(workerNum - 1);
 
     if(workerArray.length == 0)
     {
@@ -74,7 +64,8 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
                     buffer: new SharedArrayBuffer(fixedWidth * height * 4),
-                    height: height
+                    height: height,
+                    imageData: contextRef.current.createImageData(fixedWidth, height)
                 }
             )
             
@@ -93,6 +84,7 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
             workerArray[i].xcoor = fixedWidth*i;
             workerArray[i].width = fixedWidth;
             workerArray[i].height = height;
+            workerArray[i].imageData = contextRef.current.createImageData(fixedWidth, height);
         }
 
         workerArray[workerArray.length - 1].id = workerNum - 1;
@@ -100,6 +92,7 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
         workerArray[workerArray.length - 1].width= fixedWidth + leftovers;
         workerArray[workerArray.length - 1].buffer= new SharedArrayBuffer((fixedWidth+leftovers) * height * 4);
         workerArray[workerArray.length - 1].height= height;
+        workerArray[workerArray.length - 1].imageData = contextRef.current.createImageData((fixedWidth+leftovers), height);
 
         //return workerArray;
     }
@@ -111,6 +104,7 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
             workerArray[i].xcoor = fixedWidth*i
             workerArray[i].width = fixedWidth
             workerArray[i].height = height
+            workerArray[i].imageData = contextRef.current.createImageData(fixedWidth, height);
         }
         for(var i = workerArray.length; i < workerNum - 1; i++)
         {
@@ -122,7 +116,8 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
                     buffer: new SharedArrayBuffer((fixedWidth * height * 4)),
-                    height: height
+                    height: height,
+                    imageData: contextRef.current.createImageData(fixedWidth, height)
                 }
             )
         }
@@ -134,7 +129,8 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
                 xcoor: width - (fixedWidth + leftovers),
                 width: fixedWidth + leftovers,
                 buffer: new SharedArrayBuffer((fixedWidth+leftovers) * height * 4),
-                height: height
+                height: height,
+                imageData: contextRef.current.createImageData((fixedWidth+leftovers), height)
             }
         )
         
@@ -146,14 +142,27 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
             workerArray[i].xcoor= fixedWidth*i;
             workerArray[i].width= fixedWidth;
             workerArray[i].buffer= new SharedArrayBuffer((fixedWidth) * height * 4);
-            workerArray[i].height = height
+            workerArray[i].height = height,
+            workerArray[i].imageData = contextRef.current.createImageData(fixedWidth, height);
+            
         }
         
         workerArray[workerArray.length - 1].xcoor= width - (fixedWidth + leftovers);
         workerArray[workerArray.length - 1].width= fixedWidth + leftovers;
         workerArray[workerArray.length - 1].buffer= new SharedArrayBuffer((fixedWidth+leftovers) * height * 4);
         workerArray[workerArray.length - 1].height = height;
+        workerArray[workerArray.length - 1].imageData = contextRef.current.createImageData((fixedWidth+leftovers), height);
     }
     
+    workerArray.forEach((elem) => {
+        elem.worker.addEventListener('message', function(e) {
+            
+            //var idata = context.current.createImageData(workerArray[e.data.id].width, workerArray[e.data.id].height);
+            var data = new Uint8ClampedArray(workerArray[e.data.id].buffer);
+            workerArray[e.data.id].imageData.data.set(data);
+            contextRef.current.putImageData(workerArray[e.data.id].imageData, workerArray[e.data.id].xcoor, 0);
+            
+            }, false);
+    })
     return workerArray;
 }

@@ -16,7 +16,7 @@ export function handleSubmitForm(e:FormEvent,
 
     if(workerNum !== workerArray.length)
     {
-        var newArr = buildWorkerArray(workerNum,workerArray,canvasWidth, canvasHeight);
+        var newArr = buildWorkerArray(workerNum,workerArray,canvasWidth, canvasHeight,contextRef);
         setWorkerArray(arr=>newArr);
     }
     spawnMandelbrotWorkers(wProp,contextRef, workerArray, theme.current);
@@ -40,7 +40,7 @@ export function reDrawImage(canvasRef:React.RefObject<HTMLCanvasElement>,
     resetCanvas(canvasRef)
     const width = canvasRef.current?.width!;
     const height = canvasRef.current?.height!;
-    var arr = buildWorkerArray(currentWorkerNum, workerArray, width, height);
+    var arr = buildWorkerArray(currentWorkerNum, workerArray, width, height,contextRef);
     workerProp.height = height;
     setWorkerArray(a=>arr);
     spawnMandelbrotWorkers(workerProp, contextRef, arr, theme);
@@ -69,7 +69,7 @@ export function resetImage(e:FormEvent,
             sampleNo:1,
             resolution:(2/(height/2))
         }
-        var arr = buildWorkerArray(workerArray.length, workerArray, width, height);
+        var arr = buildWorkerArray(workerArray.length, workerArray, width, height,contextRef);
         setWorkerArray(a=>arr);
         spawnMandelbrotWorkers(wProp,contextRef, workerArray,theme);
 }
@@ -98,13 +98,11 @@ export function clickHandle(event:MouseEvent,
 
     setTopLeftCoordinate(c=>newC);
     setRes(a => a*zoom);
-    const width = canvasRef.current?.width!;
-    const height = canvasRef.current?.height!;
     
     if(workerNum !== workerArray.length)
     {
         
-        var newArr = buildWorkerArray(workerNum,workerArray,canvasRef.current?.width!, canvasRef.current?.height!);
+        var newArr = buildWorkerArray(workerNum,workerArray,canvasRef.current?.width!, canvasRef.current?.height!,contextRef);
         setWorkerArray(arr=>newArr);
     }
     wProp.topLeftCoor = newC;
