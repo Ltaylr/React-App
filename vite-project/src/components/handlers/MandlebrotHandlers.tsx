@@ -1,6 +1,6 @@
 import { MouseEvent, FormEvent, MutableRefObject } from 'react';
 import { spawnMandelbrotWorkers, buildWorkerArray, workerProp, workerBufferPair } from '../../helperFiles/WorkerSpawningHelpers';
-import {getClickCoordinate, getTopLeftCoordinate, mandelProp, coordinatePair} from '../../helperFiles/MandelbrotHelpers'
+import {getClickCoordinate, getTopLeftCoordinate, coordinatePair} from '../../helperFiles/MandelbrotHelpers'
 import { theme } from '../../helperFiles/ColorFuncs';
 
 export function handleSubmitForm(e:FormEvent,
@@ -19,7 +19,7 @@ export function handleSubmitForm(e:FormEvent,
         var newArr = buildWorkerArray(workerNum,workerArray,canvasWidth, canvasHeight,contextRef);
         setWorkerArray(newArr);
     }
-    spawnMandelbrotWorkers(wProp,contextRef, workerArray, theme.current);
+    spawnMandelbrotWorkers(wProp,workerArray, theme.current);
 }
 export function resetCanvas(canvasRef:React.RefObject<HTMLCanvasElement>)
 {
@@ -43,7 +43,7 @@ export function reDrawImage(canvasRef:React.RefObject<HTMLCanvasElement>,
     var arr = buildWorkerArray(currentWorkerNum, workerArray, width, height,contextRef);
     workerProp.height = height;
     setWorkerArray(arr);
-    spawnMandelbrotWorkers(workerProp, contextRef, arr, theme);
+    spawnMandelbrotWorkers(workerProp, arr, theme);
 }
 export function resetImage(e:FormEvent,
     setIterations:Function,
@@ -72,7 +72,7 @@ export function resetImage(e:FormEvent,
         }
         var arr = buildWorkerArray(workerArray.length, workerArray, width, height,contextRef);
         setWorkerArray(arr);
-        spawnMandelbrotWorkers(wProp,contextRef, workerArray,theme);
+        spawnMandelbrotWorkers(wProp,workerArray,theme);
 }
 export function clickHandle(event:MouseEvent, 
     res:number, 
@@ -108,7 +108,7 @@ export function clickHandle(event:MouseEvent,
     }
     wProp.topLeftCoor = newC;
 
-    spawnMandelbrotWorkers(wProp,contextRef, workerArray,theme);
+    spawnMandelbrotWorkers(wProp, workerArray,theme);
 
 }
 

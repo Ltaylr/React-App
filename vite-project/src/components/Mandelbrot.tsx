@@ -60,7 +60,7 @@ function Mandelbrot(props:mandelProp)
     }
     const spawnW = () => 
     {
-        spawnMandelbrotWorkers(getWorkerProp(), contextRef,workerArray, theme.current)
+        spawnMandelbrotWorkers(getWorkerProp(), workerArray, theme.current)
     }
 
     useEffect(() => {
@@ -69,7 +69,7 @@ function Mandelbrot(props:mandelProp)
         const height = canvasRef.current?.height!;
         contextRef.current = canvasRef.current!.getContext("2d")!;
         var arr = buildWorkerArray(workerNum, workerArray, width, height,contextRef);
-        setWorkerArray(a=>arr);
+        setWorkerArray(arr);
         const wProp:workerProp = {
             topLeftCoor:tLcoor.current,
             width:width,
@@ -78,7 +78,7 @@ function Mandelbrot(props:mandelProp)
             sampleNo:sampRef.current,
             resolution:resRef.current
         }
-        spawnMandelbrotWorkers(wProp, contextRef, arr, theme.current);
+        spawnMandelbrotWorkers(wProp, arr, theme.current);
         window.addEventListener("resize", handleResize);
         return () => {
             window.removeEventListener("resize", handleResize);

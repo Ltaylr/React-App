@@ -62,7 +62,7 @@ function App() {
     <div className="App">
       <div className="side-nav">
       {
-        pageData.map((item, index) => (<a key={index} href={item.path}>{item.name}</a>))
+        pageData.map((item, index) => (<a key={index} href={"/"+item.path}>{item.name}</a>))
       }
       </div>
     <BrowserRouter>

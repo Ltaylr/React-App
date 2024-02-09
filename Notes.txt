@@ -1,0 +1,11 @@
+Threads are becoming slower the longer and more they are used in the Mandelbrot app. I am not sure why this is yet. 
+
+I think there is a memory issue, or something to do with an shared array, which is causing the threads to block the longer
+they are in use. It might have to do with garbage collection. Resetting the threads seems to fix the issue.
+
+Possible Routes to a Solutions: 
+	1. Occasionally reset the threads - bad, doesn't address underlying issue. 
+	2. Examine palette buffer shared array. This may have something to do with it. 
+	3. Examine image buffer shared array. Possibly allocating and re-allocating new UInt8ClampedArray() is causing the issue. 
+	4. Something to do with PutImageData?
+

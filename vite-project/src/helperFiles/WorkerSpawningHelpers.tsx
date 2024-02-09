@@ -23,7 +23,7 @@ export interface workerProp
     resolution:number
 }
 
-export function spawnMandelbrotWorkers(props:workerProp, context:React.MutableRefObject<CanvasRenderingContext2D>, workerArray:Array<workerBufferPair>, palette:theme)
+export function spawnMandelbrotWorkers(props:workerProp, workerArray:Array<workerBufferPair>, palette:theme)
 {
     var workersRunning = 0;
     //var workerArray:Array<Worker> = []
@@ -32,12 +32,6 @@ export function spawnMandelbrotWorkers(props:workerProp, context:React.MutableRe
     for(var i = 0; i < workerNum; i++)
     {
         var wProp = JSON.parse(JSON.stringify(props));
- 
-        
-        workerArray[i].worker.onerror = (e) => { 
-        console.log(e.message)
-        }
-        
         wProp.width = workerArray[i].width;
         wProp.topLeftCoor.x += (workerArray[i].xcoor*props.resolution);
         workerArray[i].worker.postMessage({props:wProp, id:i, totalWorkers: workerNum, buffer:workerArray[i].buffer, theme:palette})
@@ -56,7 +50,7 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
         {
             workerArray.push(
                 {
-                    worker: new Worker("../src/scripts/MandelbrotWorker.js", {type:'module'}),
+                    worker: new Worker(new URL("./MandelbrotWorker",import.meta.url), {type:'module'}),
                     id: i,
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
@@ -108,7 +102,7 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
             
             workerArray.push(
                 {
-                    worker: new Worker("../src/scripts/MandelbrotWorker.js",{type:'module'}),
+                    worker: new Worker(new URL("./MandelbrotWorker",import.meta.url), {type:'module'}),
                     id: i,
                     xcoor: fixedWidth*i,
                     width: fixedWidth,
@@ -121,7 +115,7 @@ export function buildWorkerArray(workerNum:number, workerArray:Array<workerBuffe
 
         workerArray.push(
             {
-                worker: new Worker("../src/scripts/MandelbrotWorker.js"),
+                worker: new Worker(new URL("./MandelbrotWorker",import.meta.url), {type:'module'}),
                 id: workerNum - 1,
                 xcoor: width - (fixedWidth + leftovers),
                 width: fixedWidth + leftovers,
