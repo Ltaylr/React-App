@@ -1,10 +1,12 @@
 import "./init.js"
 import './App.css'
-import { BrowserRouter, Routes, Route } from "react-router-dom"; 
+      
+import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home"; 
 import Blogs from "./pages/Blogs"; 
 import Contact from "./pages/Contact"; 
 import NoPage from "./pages/NoPage";
+import Projects from "./pages/Projects.tsx";
 import MandelbrotViewer from './pages/MandelbrotViewer.tsx'
 import MandelbrotGLViewer from './pages/MandelbrotGLViewer.tsx'
 
@@ -42,17 +44,10 @@ const pageData:Array<linkObj> =[
     },
     {
       id: 5,
-      name: "Mandelbrot Viewer",
-      path: "mandelbrotViewer",
-      comp: "MandelbrotViewer",
+      name: "Projects",
+      path: "projects",
+      comp: "Projects",
     },
-    {
-      id: 5,
-      name: "Webgl Mandelbrot",
-      path: "mandelbrotGLViewer",
-      comp: "MandelbrotGLViewer",
-    },
-
 ];
 
 function App() {
@@ -65,7 +60,6 @@ function App() {
         pageData.map((item, index) => (<a key={index} href={"/"+item.path}>{item.name}</a>))
       }
       </div>
-    <BrowserRouter>
       <Routes>
           <Route path="/" element={<Home />}/>
           <Route path="/home" element={<Home />}/>
@@ -73,10 +67,9 @@ function App() {
           <Route path="/contact" element={<Contact />}/>
           <Route path="/mandelbrotviewer" element={<MandelbrotViewer />}/>
           <Route path="/mandelbrotglviewer" element={<MandelbrotGLViewer />}/>
+          <Route path="/projects/*" element={<Projects />}/>
           <Route path="*" element={<NoPage />}/>
       </Routes>
-    </BrowserRouter>
-    
     </div>
   )
 }

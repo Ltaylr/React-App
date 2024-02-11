@@ -1,0 +1,21 @@
+.project-cards-container{
+    display: flex;
+    flex-direction: row;
+}
+img{
+    max-width: 90%;
+    margin: 1em;
+}
+.project-card {
+    max-width: 300px;
+    max-height: 300px;
+    border: black;
+    border-width: 2px;
+    background-color: rgb(65, 88, 88);
+    margin: 10px;
+    border-radius: 10px;
+}
+
+body {
+    background-color: rgb(20, 21, 30);
+}
